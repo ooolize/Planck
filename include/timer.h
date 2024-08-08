@@ -5,6 +5,7 @@
  * @LastEditors: lize
  */
 #pragma once
+#include "utils/time.h"
 namespace planck {
 
 using NanoTime = unsigned long;
@@ -14,6 +15,7 @@ using size_t = unsigned long;
 using CallBack = void (*)();
 class Timer {
  public:
+  Timer() = default;
   Timer(TimeStamp timestamp, int time_interval, int repeat, CallBack callback)
     : _timestamp(timestamp),
       _time_interval(time_interval),

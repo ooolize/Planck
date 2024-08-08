@@ -2,6 +2,7 @@
 # cd build
 # cmake .. -DCMAKE_BUILD_TYPE=Release -G "MinGW Makefiles"  ; cmake --build . -j4
 # clang-tidy .\src\command\command.cpp -p build -- -I F:\project\pattern\include
+# rm -rf build/*; cmake -S . -B build; cmake --build  build -j4
 cmake_minimum_required(VERSION 3.5)
 
 # 如果windows下想使用g++ 需要编译时 cmake -G "MinGW Makefiles" ..
@@ -20,8 +21,8 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 # 添加全局包含路径
-include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/3rdparty/benchmark/include)
+include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR})
+# include_directories(${PROJECT_SOURCE_DIR}/3rdparty/benchmark/include)
 # 添加全局共享库路径
 link_directories(${PROJECT_SOURCE_DIR}/lib)
 

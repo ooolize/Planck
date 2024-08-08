@@ -4,6 +4,7 @@
  * @Date: 2024-08-09
  * @LastEditors: lize
  */
+#pragma once
 #include <chrono>
 namespace lztime {
 

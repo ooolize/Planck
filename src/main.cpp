@@ -6,7 +6,7 @@
  */
 #include <iostream>
 
-#include "manager.h"
+#include "timer_manager.h"
 
 int main() {
   planck::TimerManager manager;
