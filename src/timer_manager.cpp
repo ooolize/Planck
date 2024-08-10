@@ -35,9 +35,10 @@ NanoTime TimerManager::calcAdvanceTime() {
 }
 
 void TimerManager::run() {
-  while (true && _timer.getStatus()) {
+  while (true) {
     auto time = calcAdvanceTime();
     update(time);
+    return;
   }
 }
 }  // namespace planck

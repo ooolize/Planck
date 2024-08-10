@@ -1,8 +1,8 @@
 Checks: >
-  clang-analyzer-*,
   cppcoreguidelines-*,
-  performance-*
-  -performance-avoid-endl
+  performance-*,
+  -performance-avoid-endl,
+  -clang-analyzer-*,
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
@@ -13,5 +13,6 @@ CheckOptions:
     value:           'NULL'
   - key:             readability-identifier-naming.VariableCase
     value:           'lower_case'
-# readability-*,
-# modernize-*,
+readability-*,
+modernize-*,
+clang-analyzer-*,
