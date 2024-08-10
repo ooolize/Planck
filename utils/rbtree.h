@@ -127,7 +127,11 @@ class RBTree {
     if (node == nullptr) {
       return;
     }
-
+    if (_count == 1 && _root->_value == value) {
+      _root = nullptr;
+      _count--;
+      return;
+    }
     // if node has two child, find the max value in left child
     // and replace node with max value node.
     if (node->_left && node->_right) {
@@ -159,6 +163,9 @@ class RBTree {
     }
     // if node is black leaf node
     removeBlackLeafNode(node);
+    node->_parent->_left = nullptr;
+    node->_parent->_right = nullptr;
+    _count--;
   }
 
   NodeSPtr find(Value value) {
@@ -299,6 +306,100 @@ class RBTree {
       parent->_color = TreeColor::RED;
       sibling = node->sibling();
     }
+
+    // Case 2: Sibling and nephews are BLACK, parent is RED
+    //   Swap the color of P and S
+    //      <P>             [P]
+    //      / \             / \
+    //    [N] [S]  ====>  [N] <S>
+    //        / \             / \
+    //      [C] [D]         [C] [D]
+    if (parent->_color == TreeColor::RED &&
+        sibling->_color == TreeColor::BLACK &&
+        (sibling->_left == nullptr ||
+         sibling->_left->_color == TreeColor::BLACK) &&
+        (sibling->_right == nullptr ||
+         sibling->_right->_color == TreeColor::BLACK)) {
+      parent->_color = TreeColor::BLACK;
+      sibling->_color = TreeColor::RED;
+      return;
+    }
+
+    // Case 3: Sibling, parent and nephews are all black
+    //   Step 1. Paint S to RED
+    //   Step 2. Recursively maintain P
+    //      [P]             [P]
+    //      / \             / \
+    //    [N] [S]  ====>  [N] <S>
+    //        / \             / \
+    //      [C] [D]         [C] [D]
+
+    if (parent->_color == TreeColor::BLACK &&
+        sibling->_color == TreeColor::BLACK &&
+        (sibling->_left == nullptr ||
+         sibling->_left->_color == TreeColor::BLACK) &&
+        (sibling->_right == nullptr ||
+         sibling->_right->_color == TreeColor::BLACK)) {
+      sibling->_color = TreeColor::RED;
+      removeBlackLeafNode(parent);
+      return;
+    }
+    // Case 4: Sibling is BLACK, close nephew is RED,
+    //         distant nephew is BLACK
+    //   Step 1. If N is a left child, right rotate S;
+    //           If N is a right child, left rotate S.
+    //   Step 2. Swap the color of close nephew and sibling
+    //   Step 3. Goto case 5
+    //                            {P}                {P}
+    //      {P}                   / \                / \
+    //      / \    r-rotate(S)  [N] <C>   repaint  [N] [C]
+    //    [N] [S]  ==========>        \   ======>        \
+    //        / \                     [S]                <S>
+    //      <C> [D]                     \                  \
+    //                                  [D]                [D]
+
+    auto closeNephew = sibling->_left;
+    auto distantNephew = sibling->_right;
+    if (sibling->_color == TreeColor::BLACK &&
+        (sibling->_left == nullptr ||
+         sibling->_left->_color == TreeColor::BLACK) &&
+        (sibling->_right != nullptr &&
+         sibling->_right->_color == TreeColor::RED)) {
+      if (node == parent->_left) {
+        rotateRight(sibling);
+      } else {
+        rotateLeft(sibling);
+      }
+      sibling->_color = TreeColor::RED;
+      closeNephew->_color = TreeColor::BLACK;
+      sibling = node->sibling();
+
+      if (node == parent->left) {
+        closeNephew = sibling->_left;
+        distantNephew = sibling->_right;
+      } else {
+        closeNephew = sibling->_right;
+        distantNephew = sibling->_left;
+      }
+    }
+
+    // Case 5: Sibling is BLACK, distant nephew is RED
+    //   Step 1. If N is a left child, left rotate P;
+    //           If N is a right child, right rotate P.
+    //   Step 2. Swap the color of parent and sibling.
+    //   Step 3. Paint distant nephew D to BLACK.
+    //      {P}                   [S]               {S}
+    //      / \    l-rotate(P)    / \    repaint    / \
+    //    [N] [S]  ==========>  {P} <D>  ======>  [P] [D]
+    //        / \               / \               / \
+    //      {C} <D>           [N] {C}           [N] {C}
+    if (node == parent->_left) {
+      rotateLeft(parent);
+    } else {
+      rotateRight(parent);
+    }
+    std::swap(parent->_color, sibling->_color);
+    distantNephew->_color = TreeColor::BLACK;
   }
 
  private:
