@@ -6,9 +6,14 @@
  */
 
 #pragma once
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <functional>
+#include <iomanip>
+#include <iostream>
 #include <memory>
+#include <vector>
 namespace lz {
 enum class TreeColor : uint8_t { RED, BLACK };
 
@@ -181,7 +186,36 @@ class RBTree {
     }
     return nullptr;
   };
-  NodeSPtr findMin() {};
+  NodeSPtr findMin() {
+    return findLeftestNode(_root);
+  };
+  std::pair<bool, int> checkRbTree() {
+    auto count = checkEachPath(_root, 0);
+    return count == -1 ? std::make_pair(false, count)
+                       : std::make_pair(true, count);
+  }
+  void printTree(const Node* node,
+                 int level = 0,
+                 const std::string& prefix = "Root: ") {
+    if (node != nullptr) {
+      std::cout << std::setw(level * 4) << prefix << node->value
+                << (node->color == TreeColor::RED ? "(R)" : "(B)") << std::endl;
+      if (node->left != nullptr || node->right != nullptr) {
+        if (node->left) {
+          printTree(node->left, level + 1, "L--- ");
+        } else {
+          std::cout << std::setw((level + 1) * 4) << "L--- " << "None"
+                    << std::endl;
+        }
+        if (node->right) {
+          printTree(node->right, level + 1, "R--- ");
+        } else {
+          std::cout << std::setw((level + 1) * 4) << "R--- " << "None"
+                    << std::endl;
+        }
+      }
+    }
+  }
 
  private:
   //     [3]                   4
@@ -271,13 +305,13 @@ class RBTree {
       }
     }
   }
-  NodeSPtr findRightestNode(NodeSPtr node) const {
+  NodeSPtr findRightestNode(const Node* node) const {
     while (node->_right) {
       node = node->_right;
     }
     return node;
   }
-  NodeSPtr findLeftestNode(NodeSPtr node) const {
+  NodeSPtr findLeftestNode(const Node* node) const {
     while (node->_left) {
       node = node->_left;
     }
@@ -400,6 +434,22 @@ class RBTree {
     }
     std::swap(parent->_color, sibling->_color);
     distantNephew->_color = TreeColor::BLACK;
+  }
+  int checkEachPath(const Node* node, int black_count) {
+    if (node == nullptr) {
+      black_count++;
+      return black_count;
+    }
+    if (node->_color == TreeColor::BLACK) {
+      black_count++;
+    }
+    if ((node->left && node->_value < node->left->_value) ||
+        (node->right && node->_value > node->right->_value)) {
+      return -1;
+    }
+    auto leftCount = checkEachPath(node->_left, black_count);
+    auto rightCount = checkEachPath(node->_right, black_count);
+    return leftCount == rightCount ? leftCount : -1;
   }
 
  private:

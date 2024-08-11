@@ -6,7 +6,7 @@
  */
 #pragma once
 #include <chrono>
-namespace lztime {
+namespace lz {
 
 inline int rdtsc() {
   unsigned int lo, hi;
@@ -32,4 +32,4 @@ inline size_t getTimeStamp() {
     .count();
 }
 
-}  // namespace lztime
+}  // namespace lz

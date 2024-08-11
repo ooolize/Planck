@@ -11,7 +11,6 @@ namespace planck {
 using NanoTime = unsigned long;
 using GHz = float;
 using TimeStamp = unsigned long;
-using size_t = unsigned long;
 using CallBack = void (*)();
 class Timer {
  public:
@@ -22,9 +21,9 @@ class Timer {
       _repeat(repeat),
       _status(true),
       _callback(callback) {
-    auto delat = timestamp - lztime::getTimeStamp();
-    _rdtsc_time = lztime::rdtsc() +
-                  lztime::nanoTime2rdtsc(delat, lztime::getFrequencyGHz());
+    auto delat = timestamp - lz::getTimeStamp();
+    _rdtsc_time =
+      lz::rdtsc() + lz::nanoTime2rdtsc(delat, lz::getFrequencyGHz());
   }
   NanoTime getRdtscTime() const {
     return _rdtsc_time;
