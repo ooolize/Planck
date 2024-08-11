@@ -10,12 +10,11 @@
 #include "utils/time.h"
 int main() {
   planck::TimerManager manager;
-  constexpr size_t second = 1;
-  constexpr size_t multi = 1000;
-  auto offset = second * multi * multi;
-  manager.addTimer(planck::Timer(lz::getTimeStamp() + offset, 0, 1, []() {
-    std::cout << "Hello World" << std::endl;
-  }));
+  constexpr std::size_t second = 1;
+  constexpr std::size_t multi = 1000;
+  auto offset = second * multi * multi * multi;
+  auto func = []() { std::cout << "Hello World" << std::endl; };
+  manager.addTimer(planck::Timer(lz::getTimeStamp() + offset, 0, 1, func));
   manager.run();
   return 0;
 }

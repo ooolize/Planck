@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.5)
 # 如果windows下想使用g++ 需要编译时 cmake -G "MinGW Makefiles" ..
 # 否则默认使用Visual Studio 17 2022 生成器
 # 设置使用的编译器
-set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_CXX_COMPILER clang++)
 
 # 设置项目名称
 project(pattern)
