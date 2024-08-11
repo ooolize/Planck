@@ -14,7 +14,7 @@ namespace planck {
 
 class HighSpeedControlStg : public ControlStg {
  public:
-  explicit HighSpeedControlStg(TimerSPtr timer) : _timer(timer) {
+  explicit HighSpeedControlStg(TimerSPtr timer = nullptr) : _timer(timer) {
   }
   void strategy() override {
     // first sleep
@@ -27,7 +27,7 @@ class HighSpeedControlStg : public ControlStg {
   }
 
  private:
-  TimerSPtr _timer;
+  TimerSPtr _timer{};
   std::size_t _before_wake_us = 30;
 };
 }  // namespace planck

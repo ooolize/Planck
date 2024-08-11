@@ -10,7 +10,7 @@ class ControlStg {
  public:
   virtual void strategy() = 0;
 
-  virtual ~ControlStg() noexcept = 0;
+  virtual ~ControlStg() noexcept = default;
   ControlStg(const ControlStg&) = delete;
   ControlStg& operator=(const ControlStg&) = delete;
   ControlStg(ControlStg&&) = delete;

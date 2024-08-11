@@ -15,18 +15,17 @@
 #include "utils/time.h"
 namespace planck {
 
-std::size_t TimerManager::addTimer(planck::Timer timer) {
-  _timer = timer;
-  return 0;
+void TimerManager::addTimer(planck::Timer timer) {
+  _timer_container.insert(timer);
+  return;
 }
 
-void TimerManager::removeTimer(planck::Timer id) {
+void TimerManager::removeTimer(planck::Timer timer) {
+  _timer_container.remove(timer);
 }
 
 void TimerManager::run() {
   while (true) {
-    // auto delt_time = calcDeltTime();
-    // update(delt_time);
     this->_control_stg->strategy();
     return;
   }

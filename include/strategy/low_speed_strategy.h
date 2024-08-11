@@ -13,7 +13,7 @@
 namespace planck {
 class LowSpeedControlStg : public ControlStg {
  public:
-  explicit LowSpeedControlStg(TimerSPtr timer) : _timer(timer) {
+  explicit LowSpeedControlStg(TimerSPtr timer = nullptr) : _timer(timer) {
   }
   void strategy() override {
     if (_timer == nullptr) {
@@ -26,6 +26,6 @@ class LowSpeedControlStg : public ControlStg {
   }
 
  private:
-  TimerSPtr _timer;
+  TimerSPtr _timer{};
 };
 }  // namespace planck

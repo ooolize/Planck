@@ -9,6 +9,8 @@ cmake_minimum_required(VERSION 3.5)
 # 否则默认使用Visual Studio 17 2022 生成器
 # 设置使用的编译器
 set(CMAKE_CXX_COMPILER clang++)
+# 设置c++标准
+set(CMAKE_CXX_STANDARD 20)
 
 # 设置项目名称
 project(pattern)

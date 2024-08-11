@@ -109,9 +109,9 @@ class RBTree {
     //   P(r)  U(b)  ===>    P(r)  U(b)
     //     N(r)           N(r)
     // need rotate to trans case6
-    if (node == parent->right && parent == grandParent->left) {
+    if (node == parent->_right && parent == grandParent->_left) {
       rotateLeft(parent);
-    } else if (node == parent->left && parent == grandParent->right) {
+    } else if (node == parent->_left && parent == grandParent->_right) {
       rotateRight(parent);
     }
 
@@ -119,9 +119,9 @@ class RBTree {
     //      G(b)   R-rotate   P(r)      recolor   P(b)
     //   P(r)  U(b)  ===>  N(r)  G(b)     ===>  N(r)  G(r)
     // N(r)                        U(b)                  U(b)
-    if (node == parent->left && parent == grandParent->left) {
+    if (node == parent->_left && parent == grandParent->_left) {
       rotateRight(grandParent);
-    } else if (node == parent->right && parent == grandParent->right) {
+    } else if (node == parent->_right && parent == grandParent->_right) {
       rotateLeft(grandParent);
     }
     grandParent->_color = TreeColor::RED;
@@ -142,7 +142,7 @@ class RBTree {
     if (node->_left && node->_right) {
       NodeSPtr lower_node = findRightestNode(node->_left);
       node->_value = lower_node->_value;
-      lower_node->parent->_right = nullptr;
+      lower_node->_parent->_right = nullptr;
       return;
     };
 
@@ -200,15 +200,15 @@ class RBTree {
     if (node != nullptr) {
       std::cout << std::setw(level * 4) << prefix << node->value
                 << (node->color == TreeColor::RED ? "(R)" : "(B)") << std::endl;
-      if (node->left != nullptr || node->right != nullptr) {
-        if (node->left) {
-          printTree(node->left, level + 1, "L--- ");
+      if (node->_left != nullptr || node->_right != nullptr) {
+        if (node->_left) {
+          printTree(node->_left, level + 1, "L--- ");
         } else {
           std::cout << std::setw((level + 1) * 4) << "L--- " << "None"
                     << std::endl;
         }
-        if (node->right) {
-          printTree(node->right, level + 1, "R--- ");
+        if (node->_right) {
+          printTree(node->_right, level + 1, "R--- ");
         } else {
           std::cout << std::setw((level + 1) * 4) << "R--- " << "None"
                     << std::endl;
@@ -224,11 +224,11 @@ class RBTree {
   //             6
   void rotateLeft(NodeSPtr node) {
     NodeSPtr parent = node->_parent;
-    NodeSPtr rightNode = node->right;
-    NodeSPtr successor = node->right->left;
+    NodeSPtr rightNode = node->_right;
+    NodeSPtr successor = node->_right->_left;
 
-    rightNode->left = node;
-    node->right = successor;
+    rightNode->_left = node;
+    node->_right = successor;
 
     rightNode->_parent = node->_parent;
     node->_parent = rightNode;
@@ -244,12 +244,12 @@ class RBTree {
   // dual operation of rotateLeft. just swap text "right" with "left"
   void rotateRight(NodeSPtr node) {
     NodeSPtr parent = node->_parent;
-    NodeSPtr leftNode = node->left;
-    NodeSPtr successor = node->left->right;
+    NodeSPtr leftNode = node->_left;
+    NodeSPtr successor = node->_left->_right;
 
     // update node's child
-    leftNode->right = node;
-    node->left = successor;
+    leftNode->_right = node;
+    node->_left = successor;
 
     // update node's parent
     leftNode->_parent = node->_parent;
@@ -264,17 +264,17 @@ class RBTree {
   //   N(r)                 N(r)
   void recolor(NodeSPtr node) {
     // if node is root or node's parent is root, return
-    // if (node == nullptr || node->parent == nullptr ||
-    //     node->parent->parent == nullptr) {
+    // if (node == nullptr || node->_parent == nullptr ||
+    //     node->_parent->_parent == nullptr) {
     //   return;
     // }
     // if node's parent is black, is ok
-    if (node->parent->_color == TreeColor::BLACK) {
+    if (node->_parent->_color == TreeColor::BLACK) {
       return;
     }
-    node->parent->parent->_color = TreeColor::RED;
-    node->parent->parent->_left->_color = TreeColor::BLACK;
-    node->parent->parent->_right->_color = TreeColor::BLACK;
+    node->_parent->_parent->_color = TreeColor::RED;
+    node->_parent->_parent->_left->_color = TreeColor::BLACK;
+    node->_parent->_parent->_right->_color = TreeColor::BLACK;
     recolor(node->_parent->_parent);
   }
   NodeSPtr insertValue(NodeSPtr node, Value value) {
@@ -304,8 +304,10 @@ class RBTree {
         return node;
       }
     }
+    // should not reach here
+    return nullptr;
   }
-  NodeSPtr findRightestNode(const Node* node) const {
+  NodeSPtr findRightestNode(NodeSPtr node) const {
     while (node->_right) {
       node = node->_right;
     }
@@ -408,7 +410,7 @@ class RBTree {
       closeNephew->_color = TreeColor::BLACK;
       sibling = node->sibling();
 
-      if (node == parent->left) {
+      if (node == parent->_left) {
         closeNephew = sibling->_left;
         distantNephew = sibling->_right;
       } else {
@@ -443,8 +445,8 @@ class RBTree {
     if (node->_color == TreeColor::BLACK) {
       black_count++;
     }
-    if ((node->left && node->_value < node->left->_value) ||
-        (node->right && node->_value > node->right->_value)) {
+    if ((node->_left && node->_value < node->_left->_value) ||
+        (node->_right && node->_value > node->_right->_value)) {
       return -1;
     }
     auto leftCount = checkEachPath(node->_left, black_count);
