@@ -29,7 +29,7 @@ inline float getFrequencyGHz() {
   return 3.7;
 }
 
-inline std::size_t getTimeStamp() {
+inline std::size_t getTimeStampNs() {
   return std::chrono::duration_cast<std::chrono::nanoseconds>(
            std::chrono::system_clock::now().time_since_epoch())
     .count();

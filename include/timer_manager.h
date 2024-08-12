@@ -15,26 +15,26 @@
 #include "utils/rbtree.h"
 
 namespace planck {
-using ControlStgSPtr = std::shared_ptr<ControlStg>;
-using ControlStgUPtr = std::unique_ptr<ControlStg>;
 
 class TimerManager {
  public:
   explicit TimerManager(bool is_low_precision = false)
     : low_precision(is_low_precision) {
-    if (low_precision)
-      _control_stg = std::make_unique<LowSpeedControlStg>();
-    else
-      _control_stg = std::make_unique<HighSpeedControlStg>();
+    // if (low_precision)
+    //   _control_stg = std::make_unique<LowSpeedControlStg>();
+    // else
+    //   _control_stg = std::make_unique<HighSpeedControlStg>();
   }
-  void addTimer(planck::Timer timer);
-  void removeTimer(planck::Timer timer);
+  // must use std::move to transfer the ownership of the timer
+  ID addTimer(planck::Timer&& timer);
+  void removeTimer(ID id);
 
   void run();
 
  private:
   bool low_precision = false;
-  ControlStgUPtr _control_stg;
+  Timer _current_timer;
+  // ControlStgUPtr _control_stg;
   lz::RBTree<Timer> _timer_container;
 };
 

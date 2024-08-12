@@ -1,0 +1,21 @@
+/*
+ * @Description:
+ * @Author: lize
+ * @Date: 2024-08-12
+ * @LastEditors: lize
+ */
+#include "strategy/high_speed_strategy.h"
+
+namespace planck {
+HighSpeedControlStg::HighSpeedControlStg(std::size_t before_wake_us)
+  : _before_wake_us(before_wake_us) {
+}
+void HighSpeedControlStg::strategy(const Timer& current_timer) {
+  // first sleep
+  std::this_thread::sleep_for(
+    std::chrono::nanoseconds(current_timer.getSleepTime() - _before_wake_us));
+  // before the timer should be waked up.busy query rdstc
+  while (lz::rdtsc() < current_timer.getRdtscTime());
+  return;
+}
+}  // namespace planck

@@ -14,7 +14,7 @@ int main() {
   constexpr std::size_t multi = 1000;
   auto offset = second * multi * multi * multi;
   auto func = []() { std::cout << "Hello World" << std::endl; };
-  manager.addTimer(planck::Timer(lz::getTimeStamp() + offset, 0, 1, func));
+  manager.addTimer(planck::Timer(lz::getTimeStampNs() + offset, 0, 1, func));
   manager.run();
   return 0;
 }

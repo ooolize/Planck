@@ -44,9 +44,9 @@ class RBTree {
     TreeColor _color = TreeColor::RED;
     Value _value{};
   };
-  void insert(Value value) {
+  void insert(Value&& value) {
     // first insert as nomal BST
-    auto node = insertValue(_root, value);
+    auto node = insertValue(_root, std::forward<Value>(value));
 
     // then rotate or change color to keep balance
 
@@ -189,6 +189,7 @@ class RBTree {
   NodeSPtr findMin() {
     return findLeftestNode(_root);
   };
+
   std::pair<bool, int> checkRbTree() {
     auto count = checkEachPath(_root, 0);
     return count == -1 ? std::make_pair(false, count)
@@ -277,7 +278,7 @@ class RBTree {
     node->_parent->_parent->_right->_color = TreeColor::BLACK;
     recolor(node->_parent->_parent);
   }
-  NodeSPtr insertValue(NodeSPtr node, Value value) {
+  NodeSPtr insertValue(NodeSPtr node, Value&& value) {
     if (node == nullptr) {
       _root = std::make_shared<Node>(value);
       ++_count;
@@ -313,7 +314,7 @@ class RBTree {
     }
     return node;
   }
-  NodeSPtr findLeftestNode(const Node* node) const {
+  NodeSPtr findLeftestNode(NodeSPtr node) const {
     while (node->_left) {
       node = node->_left;
     }

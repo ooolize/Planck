@@ -13,19 +13,10 @@
 namespace planck {
 class LowSpeedControlStg : public ControlStg {
  public:
-  explicit LowSpeedControlStg(TimerSPtr timer = nullptr) : _timer(timer) {
-  }
-  void strategy() override {
-    if (_timer == nullptr) {
-      std::cerr << "timer is nullptr" << std::endl;
-      return;
-    }
+  LowSpeedControlStg() = default;
+  void strategy(const Timer& current_timer) override {
     std::this_thread::sleep_for(
-      std::chrono::nanoseconds(_timer->getSleepTime()));
-    _timer->OnTimer();
+      std::chrono::nanoseconds(current_timer.getSleepTime()));
   }
-
- private:
-  TimerSPtr _timer{};
 };
 }  // namespace planck
