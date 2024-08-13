@@ -6,6 +6,7 @@
  */
 #pragma once
 #include <chrono>
+#include <fstream>
 namespace lz {
 
 inline uint64_t rdtsc() {
@@ -26,7 +27,29 @@ inline std::size_t nanoTime2rdtsc(std::size_t nanoTime, float frequencyGHz) {
 }
 
 inline float getFrequencyGHz() {
-  return 3.7;
+  std::ifstream cpuinfo("/proc/cpuinfo");
+  std::string line;
+  std::string target = "cpu MHz";
+
+  if (cpuinfo.is_open()) {
+    while (std::getline(cpuinfo, line)) {
+      if (line.find(target) != std::string::npos) {
+        // 找到包含 "cpu MHz" 的行
+        std::istringstream iss(line);
+        std::string label;
+        double mhz;
+        iss >> label >> label >> mhz;  // 读取 "cpu MHz" 和数值
+
+        std::cout << "CPU MHz: " << mhz << std::endl;
+        return mhz / 1000;
+      }
+    }
+    cpuinfo.close();
+  } else {
+    std::cerr << "无法打开 /proc/cpuinfo 文件" << std::endl;
+  }
+  return 0;
+  // return 3.7;
 }
 
 inline std::size_t getTimeStampNs() {

@@ -33,7 +33,7 @@ Timer::Timer(TimeStampNs timestamp,
 
 NanoTime Timer::getSleepTime() const {
   // TODO(): narrow_cast.
-  return std::floor((lz::rdtsc() - _rdtsc_timestamp) / frequence);
+  return std::floor((lz::rdtsc() - _rdtsc_timestamp) / frequence);  // NOLINT
 }
 NanoTime Timer::getRdtscTime() const {
   return _rdtsc_timestamp;

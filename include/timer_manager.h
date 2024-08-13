@@ -35,7 +35,7 @@ class TimerManager {
   bool low_precision = false;
   Timer _current_timer;
   // ControlStgUPtr _control_stg;
-  lz::RBTree<Timer> _timer_container;
+  lz::rbtree::RBTree<Timer> _timer_container;
 };
 
 }  // namespace planck

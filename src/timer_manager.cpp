@@ -20,8 +20,11 @@ ID TimerManager::addTimer(planck::Timer&& timer) {
 }
 
 void TimerManager::removeTimer(ID id) {
-  auto timer = _timer_container.find(Timer(id))->_value;
-  _timer_container.remove(timer);
+  auto result = _timer_container.find(Timer(id));
+  if (!result) [[unlikely]] {
+    return;
+  }
+  _timer_container.remove(result->_value);
 }
 
 void TimerManager::run() {

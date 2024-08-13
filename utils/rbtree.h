@@ -15,36 +15,44 @@
 #include <memory>
 #include <vector>
 namespace lz {
+namespace rbtree {
 enum class TreeColor : uint8_t { RED, BLACK };
+
+template <typename Value, typename Compare = std::less<Value>()>
+struct Node {
+  using NodeUPtr = std::unique_ptr<Node>;
+  using NodeSPtr = std::shared_ptr<Node>;
+  Node() = default;
+  explicit Node(Value value) : _value(value) {
+  }
+  Node(Value value, TreeColor color) : _value(value), _color(color) {
+  }
+  NodeSPtr sibling() const {
+    if (_parent == nullptr) {
+      return nullptr;
+    }
+    if (this == _parent->_left.get()) {
+      return _parent->_right;
+    }
+    return _parent->_left;
+  }
+
+  NodeSPtr _parent{};
+  NodeSPtr _left{};
+  NodeSPtr _right{};
+
+  Value _value{};
+  TreeColor _color = TreeColor::RED;
+};
 
 template <typename Value, typename Compare = std::less<Value>()>
 class RBTree {
  public:
-  class Node;
-  using NodeUPtr = std::unique_ptr<Node>;
+  using Node = Node<Value, Compare>;
   using NodeSPtr = std::shared_ptr<Node>;
-  struct Node {
-    Node() = default;
-    explicit Node(Value value) : _value(value) {
-    }
-    NodeSPtr sibling() const {
-      if (_parent == nullptr) {
-        return nullptr;
-      }
-      if (this == _parent->_left.get()) {
-        return _parent->_right;
-      }
-      return _parent->_left;
-    }
-
-    NodeSPtr _parent{};
-    NodeSPtr _left{};
-    NodeSPtr _right{};
-
-    TreeColor _color = TreeColor::RED;
-    Value _value{};
-  };
-  void insert(Value&& value) {
+  using NodeUPtr = std::unique_ptr<Node>;
+  // not Value&& or const Value&. Value deal all condition.
+  void insert(Value value) {
     // first insert as nomal BST
     auto node = insertValue(_root, std::forward<Value>(value));
 
@@ -189,7 +197,12 @@ class RBTree {
   NodeSPtr findMin() {
     return findLeftestNode(_root);
   };
-
+  std::size_t size() const {
+    return _count;
+  }
+  NodeSPtr root() const {
+    return _root;
+  }
   std::pair<bool, int> checkRbTree() {
     auto count = checkEachPath(_root, 0);
     return count == -1 ? std::make_pair(false, count)
@@ -438,7 +451,7 @@ class RBTree {
     std::swap(parent->_color, sibling->_color);
     distantNephew->_color = TreeColor::BLACK;
   }
-  int checkEachPath(const Node* node, int black_count) {
+  int checkEachPath(NodeSPtr node, int black_count) {
     if (node == nullptr) {
       black_count++;
       return black_count;
@@ -459,5 +472,5 @@ class RBTree {
   NodeSPtr _root{};
   size_t _count = 0;
 };
-
+}  // namespace rbtree
 }  // namespace lz
