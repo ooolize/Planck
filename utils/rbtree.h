@@ -51,89 +51,12 @@ class RBTree {
   using Node = Node<Value, Compare>;
   using NodeSPtr = std::shared_ptr<Node>;
   using NodeUPtr = std::unique_ptr<Node>;
-  // not Value&& or const Value&. Value deal all condition.
+  // TODO() not Value&& or const Value&. Value deal all condition.
   void insert(Value value) {
     // first insert as nomal BST
     auto node = insertValue(_root, std::forward<Value>(value));
-
     // then rotate or change color to keep balance
-
-    // case1 tree is empty. only insert RED node.
-    // fine, is ok.
-    if (_count == 1) {
-      return;
-    }
-
-    // case2 only 2 node and red root node in tree.
-    // need to change root color to black
-    if (_count == 2 && _root->_color == TreeColor::RED) {
-      _root->_color = TreeColor::BLACK;
-      return;
-    }
-    // case3 only 2 node and  black root node in tree.
-    // fine, is ok.
-    if (_count == 2 && _root->_color == TreeColor::BLACK) {
-      return;
-    }
-
-    auto parent = node->_parent;
-    assert(parent != nullptr);
-    auto grandParent = parent->_parent;
-    assert(grandParent != nullptr);
-
-    // if P is black, insert is ok. so wo only need to consider is U.
-    if (parent->_color == TreeColor::BLACK) {
-      return;
-    }
-
-    // if U is not exist
-    if (grandParent->_left == nullptr) {
-      rotateLeft(grandParent);
-      grandParent->_color = TreeColor::RED;
-      parent->_color = TreeColor::BLACK;
-      return;
-    } else if (grandParent->_right == nullptr) {
-      rotateRight(grandParent);
-      grandParent->_color = TreeColor::RED;
-      parent->_color = TreeColor::BLACK;
-      return;
-    }
-
-    // case4 if U is red.
-    //      G(b)              G(r)
-    //   P(r)  U(r)  ===>  P(b)  U(b)
-    // N(r)               N(r)
-    // need change color of G, P, U.  G'parent is unknow ,so recursively recolor
-    if (grandParent->_left->_color == TreeColor::RED &&
-        grandParent->_right->_color == TreeColor::RED) {
-      recolor(node);
-      return;
-    }
-    // if U is balck, according to the order of node, parent, grandParent
-    // LL RR LR RL
-
-    // case5 LR && RL.
-    //      G(b)   L-rotate     G(b)
-    //   P(r)  U(b)  ===>    P(r)  U(b)
-    //     N(r)           N(r)
-    // need rotate to trans case6
-    if (node == parent->_right && parent == grandParent->_left) {
-      rotateLeft(parent);
-    } else if (node == parent->_left && parent == grandParent->_right) {
-      rotateRight(parent);
-    }
-
-    // case6 LL && RR.  RR is dual operation of LL
-    //      G(b)   R-rotate   P(r)      recolor   P(b)
-    //   P(r)  U(b)  ===>  N(r)  G(b)     ===>  N(r)  G(r)
-    // N(r)                        U(b)                  U(b)
-    if (node == parent->_left && parent == grandParent->_left) {
-      rotateRight(grandParent);
-    } else if (node == parent->_right && parent == grandParent->_right) {
-      rotateLeft(grandParent);
-    }
-    grandParent->_color = TreeColor::RED;
-    parent->_color = TreeColor::BLACK;
+    fixupAfterInsert(node);
   };
   void remove(Value value) {
     NodeSPtr node = find(value);
@@ -208,25 +131,27 @@ class RBTree {
     return count == -1 ? std::make_pair(false, count)
                        : std::make_pair(true, count);
   }
-  void printTree(const Node* node,
+  void printTree(NodeSPtr node = nullptr,
                  int level = 0,
                  const std::string& prefix = "Root: ") {
-    if (node != nullptr) {
-      std::cout << std::setw(level * 4) << prefix << node->value
-                << (node->color == TreeColor::RED ? "(R)" : "(B)") << std::endl;
-      if (node->_left != nullptr || node->_right != nullptr) {
-        if (node->_left) {
-          printTree(node->_left, level + 1, "L--- ");
-        } else {
-          std::cout << std::setw((level + 1) * 4) << "L--- " << "None"
-                    << std::endl;
-        }
-        if (node->_right) {
-          printTree(node->_right, level + 1, "R--- ");
-        } else {
-          std::cout << std::setw((level + 1) * 4) << "R--- " << "None"
-                    << std::endl;
-        }
+    if (node == nullptr) {
+      node = _root;
+    }
+
+    std::cout << std::setw(level * 4) << prefix << node->_value
+              << (node->_color == TreeColor::RED ? "(R)" : "(B)") << std::endl;
+    if (node->_left != nullptr || node->_right != nullptr) {
+      if (node->_left) {
+        printTree(node->_left, level + 1, "L--- ");
+      } else {
+        std::cout << std::setw((level + 1) * 4) << "L--- " << "None"
+                  << std::endl;
+      }
+      if (node->_right) {
+        printTree(node->_right, level + 1, "R--- ");
+      } else {
+        std::cout << std::setw((level + 1) * 4) << "R--- " << "None"
+                  << std::endl;
       }
     }
   }
@@ -250,6 +175,16 @@ class RBTree {
     if (successor) {
       successor->_parent = node;
     }
+    if (parent) {
+      if (node == parent->_left) {
+        parent->_left = rightNode;
+      } else {
+        parent->_right = rightNode;
+      }
+    }
+    if (node == _root) {
+      _root = rightNode;
+    }
   }
   //         [5]                    3
   //       3      6     ==>      2      5
@@ -272,24 +207,24 @@ class RBTree {
     if (successor) {
       successor->_parent = node;
     }
+    if (parent) {
+      if (node == parent->_right) {
+        parent->_right = leftNode;
+      } else {
+        parent->_left = leftNode;
+      }
+    }
+    if (node == _root) {
+      _root = leftNode;
+    }
   }
   //        G(b)                G(r)
   //     P(r)  U(r)   ===>    P(b)  U(b)
   //   N(r)                 N(r)
   void recolor(NodeSPtr node) {
-    // if node is root or node's parent is root, return
-    // if (node == nullptr || node->_parent == nullptr ||
-    //     node->_parent->_parent == nullptr) {
-    //   return;
-    // }
-    // if node's parent is black, is ok
-    if (node->_parent->_color == TreeColor::BLACK) {
-      return;
-    }
-    node->_parent->_parent->_color = TreeColor::RED;
-    node->_parent->_parent->_left->_color = TreeColor::BLACK;
-    node->_parent->_parent->_right->_color = TreeColor::BLACK;
-    recolor(node->_parent->_parent);
+    assert(node != nullptr);
+
+    // recolor(node->_parent->_parent);
   }
   NodeSPtr insertValue(NodeSPtr node, Value&& value) {
     if (node == nullptr) {
@@ -466,6 +401,97 @@ class RBTree {
     auto leftCount = checkEachPath(node->_left, black_count);
     auto rightCount = checkEachPath(node->_right, black_count);
     return leftCount == rightCount ? leftCount : -1;
+  }
+  void fixupAfterInsert(NodeSPtr node) {
+    // then rotate or change color to keep balance
+
+    // case1 tree is empty. only insert RED node.
+    // fine, is ok.
+    if (node == _root) {
+      return;
+    }
+    if (node->_parent == _root) {
+      // case2 only 2 node and red root node in tree.
+      // need to change root color to black
+      if (_count == 2 && _root->_color == TreeColor::RED) [[unlikely]] {
+        _root->_color = TreeColor::BLACK;
+        return;
+      }
+      return;
+    }
+
+    // case3 only 2 node and  black root node in tree.
+    // fine, is ok.
+    if (_count == 2 && _root->_color == TreeColor::BLACK) {
+      return;
+    }
+
+    auto parent = node->_parent;
+    assert(parent != nullptr);
+    auto grandParent = parent->_parent;
+    assert(grandParent != nullptr);
+
+    // if P is black, insert is ok. so wo only need to consider is U.
+    if (parent->_color == TreeColor::BLACK) {
+      return;
+    }
+
+    // if U is not exist
+    // if (grandParent->_left == nullptr) {
+    //   rotateLeft(grandParent);
+    //   grandParent->_color = TreeColor::RED;
+    //   parent->_color = TreeColor::BLACK;
+    //   return;
+    // } else if (grandParent->_right == nullptr) {
+    //   rotateRight(grandParent);
+    //   grandParent->_color = TreeColor::RED;
+    //   parent->_color = TreeColor::BLACK;
+    //   return;
+    // }
+
+    // case4 if U is red.
+    //      G(b)              G(r)
+    //   P(r)  U(r)  ===>  P(b)  U(b)
+    // N(r)               N(r)
+    // need change color of G, P, U.  G'parent is unknow ,so recursively recolor
+    if (grandParent->_left && grandParent->_right &&
+        grandParent->_left->_color == TreeColor::RED &&
+        grandParent->_right->_color == TreeColor::RED) {
+      // recolor(node);
+      grandParent->_color = TreeColor::RED;
+      grandParent->_left->_color = TreeColor::BLACK;
+      grandParent->_right->_color = TreeColor::BLACK;
+      fixupAfterInsert(grandParent);
+      return;
+    }
+    // if U is balck, according to the order of node, parent, grandParent
+    // LL RR LR RL
+
+    // case5 LR && RL.
+    //      G(b)   L-rotate     G(b)
+    //   P(r)  U(b)  ===>    P(r)  U(b)
+    //     N(r)           N(r)
+    // need rotate to trans case6
+    if (node == parent->_right && parent == grandParent->_left) {
+      rotateLeft(parent);
+      // update node and parent for case6
+      std::swap(parent, node);
+    } else if (node == parent->_left && parent == grandParent->_right) {
+      rotateRight(parent);
+      std::swap(parent, node);
+    }
+
+    // case6 LL && RR.  RR is dual operation of LL
+    //      G(b)   R-rotate   P(r)      recolor   P(b)
+    //   P(r)  U(b)  ===>  N(r)  G(b)     ===>  N(r)  G(r)
+    // N(r)                        U(b)                  U(b)
+    if (node == parent->_left && parent == grandParent->_left) {
+      rotateRight(grandParent);
+    } else if (node == parent->_right && parent == grandParent->_right) {
+      rotateLeft(grandParent);
+    }
+    grandParent->_color = TreeColor::RED;
+    parent->_color = TreeColor::BLACK;
   }
 
  private:

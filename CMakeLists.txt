@@ -20,6 +20,7 @@ project(pattern)
 
 # 设置编译选项
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG) # 定义DEBUG宏
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall --std=c++2a") # 带调试信息 启用警告
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall --std=c++2a") # 优化编译
