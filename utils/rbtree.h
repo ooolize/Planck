@@ -74,6 +74,7 @@ class RBTree {
       NodeSPtr lower_node = findRightestNode(node->_left);
       node->_value = lower_node->_value;
       lower_node->_parent->_right = nullptr;
+      _count--;
       return;
     };
 
@@ -82,6 +83,15 @@ class RBTree {
     if (node->_left || node->_right) {
       auto child = node->_left ? node->_left : node->_right;
       auto parent = node->_parent;
+
+      // edge case
+      if (parent == nullptr) [[unlikely]] {
+        _root = child;
+        _root->_parent = nullptr;
+        _root->_color = TreeColor::BLACK;
+        _count--;
+        return;
+      }
       if (parent->_left == node) {
         parent->_left = child;
       } else {
@@ -89,18 +99,24 @@ class RBTree {
       }
       child->_parent = parent;
       child->_color = TreeColor::BLACK;
+      _count--;
       return;
     }
     // if node is red leaf node. just remove it.
     if (node->_color == TreeColor::RED) {
       node->_parent->_left = nullptr;
       node->_parent->_right = nullptr;
+      _count--;
       return;
     }
     // if node is black leaf node
     removeBlackLeafNode(node);
-    node->_parent->_left = nullptr;
-    node->_parent->_right = nullptr;
+    if (node->_parent->_left == node) {
+      node->_parent->_left = nullptr;
+    } else {
+      node->_parent->_right = nullptr;
+    }
+
     _count--;
   }
 
@@ -134,6 +150,9 @@ class RBTree {
   void printTree(NodeSPtr node = nullptr,
                  int level = 0,
                  const std::string& prefix = "Root: ") {
+    if (_root == nullptr) {
+      return;
+    }
     if (node == nullptr) {
       node = _root;
     }
@@ -269,8 +288,12 @@ class RBTree {
     return node;
   }
   void removeBlackLeafNode(NodeSPtr node) {
+    if (node == _root) {
+      return;
+    }
     auto parent = node->_parent;
     auto sibling = node->sibling();
+
     // Case 1: Sibling is RED, parent and nephews must be BLACK
     //   Step 1. If N is a left child, left rotate P;
     //           If N is a right child, right rotate P.
@@ -346,10 +369,9 @@ class RBTree {
     auto closeNephew = sibling->_left;
     auto distantNephew = sibling->_right;
     if (sibling->_color == TreeColor::BLACK &&
-        (sibling->_left == nullptr ||
-         sibling->_left->_color == TreeColor::BLACK) &&
-        (sibling->_right != nullptr &&
-         sibling->_right->_color == TreeColor::RED)) {
+        (closeNephew && closeNephew->_color == TreeColor::RED) &&
+        (distantNephew == nullptr &&
+         distantNephew->_color == TreeColor::BLACK)) {
       if (node == parent->_left) {
         rotateRight(sibling);
       } else {
@@ -359,6 +381,7 @@ class RBTree {
       closeNephew->_color = TreeColor::BLACK;
       sibling = node->sibling();
 
+      // update closeNephew and distantNephew
       if (node == parent->_left) {
         closeNephew = sibling->_left;
         distantNephew = sibling->_right;

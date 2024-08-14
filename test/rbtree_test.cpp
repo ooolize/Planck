@@ -101,41 +101,52 @@ TEST_F(RBTreeTest, InsertRandom) {
 }
 
 // Test one remove
-// TEST_F(RBTreeTest, RemoveOne) {
-//   _tree.insert(1);
-//   _tree.remove(1);
-//   ASSERT_EQ(_tree.size(), 0);
-//   ASSERT_TRUE(_tree.checkRbTree().first);
-// }
+TEST_F(RBTreeTest, RemoveOne) {
+  _tree.insert(1);
+  _tree.remove(1);
+  ASSERT_EQ(_tree.size(), 0);
+  ASSERT_TRUE(_tree.checkRbTree().first);
+}
 
 // Test multi remove
-// TEST_F(RBTreeTest, RemoveMulti) {
-//   GTEST_SKIP();
-//   for (int i : std::ranges::iota_view(START_NUM, END_NUM)) {
-//     _tree.insert(i);
-//   }
-//   for (int i : std::ranges::iota_view(START_NUM, END_NUM)) {
-//     _tree.remove(i);
-//   }
-//   ASSERT_EQ(_tree.size(), 0);
-//   ASSERT_TRUE(_tree.checkRbTree().first);
-// }
+TEST_F(RBTreeTest, RemoveMulti) {
+  for (int i : std::ranges::iota_view(START_NUM, END_NUM)) {
+    _tree.insert(i);
+  }
+
+  for (int i : std::ranges::iota_view(START_NUM, END_NUM)) {
+    _tree.remove(i);
+
+    ASSERT_TRUE(_tree.checkRbTree().first);
+  }
+  ASSERT_EQ(_tree.size(), 0);
+}
 
 // Test random remove
-// TEST_F(RBTreeTest, RemoveRandom) {
-//   GTEST_SKIP();
-//   std::vector<int> vec;
-//   for (int i : std::ranges::iota_view(START_NUM, END_NUM)) {
-//     vec.push_back(i);
-//   }
-//   std::shuffle(vec.begin(), vec.end(), g);
-//   std::for_each(vec.begin(), vec.end(), [&](int i) { _tree.insert(i); });
-
-//   std::shuffle(vec.begin(), vec.end(), g);
-//   std::for_each(vec.begin(), vec.end(), [&](int i) { _tree.remove(i); });
-//   ASSERT_EQ(_tree.size(), 0);
-//   ASSERT_TRUE(_tree.checkRbTree().first);
-// }
+TEST_F(RBTreeTest, RemoveRandom) {
+  std::vector<int> vec;
+  for (int i : std::ranges::iota_view(START_NUM, END_NUM)) {
+    vec.push_back(i);
+  }
+  // std::shuffle(vec.begin(), vec.end(), g);
+  for (const int i : vec) {
+    std::cout << i << " ";
+  }
+  vec = {6, 7, 4, 9, 8, 2, 0, 1, 3, 5};
+  std::for_each(vec.begin(), vec.end(), [&](int i) { _tree.insert(i); });
+#ifdef DEBUG
+  _tree.printTree();
+#endif
+  // std::shuffle(vec.begin(), vec.end(), g);
+  std::for_each(vec.begin(), vec.end(), [&](int i) {
+    _tree.remove(i);
+#ifdef DEBUG
+    _tree.printTree();
+#endif
+  });
+  ASSERT_EQ(_tree.size(), 0);
+  ASSERT_TRUE(_tree.checkRbTree().first);
+}
 
 }  // namespace rbtree
 }  // namespace test
