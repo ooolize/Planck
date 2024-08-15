@@ -7,6 +7,7 @@
 #pragma once
 #include <chrono>
 #include <fstream>
+#include <iostream>
 namespace lz {
 
 inline uint64_t rdtsc() {
@@ -34,13 +35,15 @@ inline float getFrequencyGHz() {
   if (cpuinfo.is_open()) {
     while (std::getline(cpuinfo, line)) {
       if (line.find(target) != std::string::npos) {
+        // 使用 remove-erase 习惯用法移除所有的制表符
+        line.erase(std::remove(line.begin(), line.end(), '\t'), line.end());
         // 找到包含 "cpu MHz" 的行
         std::istringstream iss(line);
         std::string label;
         double mhz;
-        iss >> label >> label >> mhz;  // 读取 "cpu MHz" 和数值
+        // 读取 "cpu MHz" 和数值
+        iss >> label >> label >> mhz;
 
-        std::cout << "CPU MHz: " << mhz << std::endl;
         return mhz / 1000;
       }
     }

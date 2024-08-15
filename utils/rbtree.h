@@ -16,7 +16,7 @@
 #include <vector>
 namespace lz {
 namespace rbtree {
-enum class TreeColor : uint8_t { RED, BLACK };
+enum class TreeColor : uint8_t { RED = 0U, BLACK };
 
 template <typename Value, typename Compare = std::less<Value>()>
 struct Node {
@@ -35,6 +35,31 @@ struct Node {
       return _parent->_right;
     }
     return _parent->_left;
+  }
+
+  NodeSPtr closestNephew() const {
+    if (_parent == nullptr) {
+      return nullptr;
+    }
+    if (_parent->_left == nullptr || _parent->_right == nullptr) {
+      return nullptr;
+    }
+    if (this == _parent->_left.get()) {
+      return _parent->_right->_left;
+    }
+    return _parent->_left->_right;
+  }
+  NodeSPtr distantNephew() const {
+    if (_parent == nullptr) {
+      return nullptr;
+    }
+    if (_parent->_left == nullptr || _parent->_right == nullptr) {
+      return nullptr;
+    }
+    if (this == _parent->_left.get()) {
+      return _parent->_right->_right;
+    }
+    return _parent->_left->_left;
   }
 
   NodeSPtr _parent{};
@@ -65,17 +90,17 @@ class RBTree {
     }
     if (_count == 1 && _root->_value == value) {
       _root = nullptr;
-      _count--;
+      --_count;
       return;
     }
     // if node has two child, find the max value in left child
     // and replace node with max value node.
     if (node->_left && node->_right) {
       NodeSPtr lower_node = findRightestNode(node->_left);
-      node->_value = lower_node->_value;
-      lower_node->_parent->_right = nullptr;
-      _count--;
-      return;
+      // auto lower_node_parent = lower_node->parent;
+      std::swap(node->_value, lower_node->_value);
+      node = lower_node;
+      // swapNodePtr(lower_node, node);
     };
 
     // if node has one child, replace node with child. and change color to black
@@ -89,7 +114,7 @@ class RBTree {
         _root = child;
         _root->_parent = nullptr;
         _root->_color = TreeColor::BLACK;
-        _count--;
+        --_count;
         return;
       }
       if (parent->_left == node) {
@@ -99,25 +124,34 @@ class RBTree {
       }
       child->_parent = parent;
       child->_color = TreeColor::BLACK;
-      _count--;
+      --_count;
       return;
     }
     // if node is red leaf node. just remove it.
     if (node->_color == TreeColor::RED) {
-      node->_parent->_left = nullptr;
-      node->_parent->_right = nullptr;
-      _count--;
+      if (node->_parent->_left == node) {
+        node->_parent->_left = nullptr;
+      } else {
+        node->_parent->_right = nullptr;
+      }
+      --_count;
       return;
     }
     // if node is black leaf node
     removeBlackLeafNode(node);
+    // edge case
+    if (node == _root) [[unlikely]] {
+      --_count;
+      _root = nullptr;
+      return;
+    }
     if (node->_parent->_left == node) {
       node->_parent->_left = nullptr;
     } else {
       node->_parent->_right = nullptr;
     }
 
-    _count--;
+    --_count;
   }
 
   NodeSPtr find(Value value) {
@@ -276,12 +310,18 @@ class RBTree {
     return nullptr;
   }
   NodeSPtr findRightestNode(NodeSPtr node) const {
+    if (node == nullptr) [[unlikely]] {
+      return nullptr;
+    }
     while (node->_right) {
       node = node->_right;
     }
     return node;
   }
   NodeSPtr findLeftestNode(NodeSPtr node) const {
+    if (node == nullptr) [[unlikely]] {
+      return nullptr;
+    }
     while (node->_left) {
       node = node->_left;
     }
@@ -366,11 +406,11 @@ class RBTree {
     //      <C> [D]                     \                  \
     //                                  [D]                [D]
 
-    auto closeNephew = sibling->_left;
-    auto distantNephew = sibling->_right;
+    auto closeNephew = node->closestNephew();
+    auto distantNephew = node->distantNephew();
     if (sibling->_color == TreeColor::BLACK &&
         (closeNephew && closeNephew->_color == TreeColor::RED) &&
-        (distantNephew == nullptr &&
+        (distantNephew == nullptr ||
          distantNephew->_color == TreeColor::BLACK)) {
       if (node == parent->_left) {
         rotateRight(sibling);
@@ -380,15 +420,15 @@ class RBTree {
       sibling->_color = TreeColor::RED;
       closeNephew->_color = TreeColor::BLACK;
       sibling = node->sibling();
-
-      // update closeNephew and distantNephew
-      if (node == parent->_left) {
-        closeNephew = sibling->_left;
-        distantNephew = sibling->_right;
-      } else {
-        closeNephew = sibling->_right;
-        distantNephew = sibling->_left;
-      }
+      distantNephew = node->distantNephew();
+      // // update closeNephew and distantNephew
+      // if (node == parent->_left) {
+      //   closeNephew = sibling->_left;
+      //   distantNephew = sibling->_right;
+      // } else {
+      //   closeNephew = sibling->_right;
+      //   distantNephew = sibling->_left;
+      // }
     }
 
     // Case 5: Sibling is BLACK, distant nephew is RED
@@ -417,12 +457,20 @@ class RBTree {
     if (node->_color == TreeColor::BLACK) {
       black_count++;
     }
+    // check value
     if ((node->_left && node->_value < node->_left->_value) ||
         (node->_right && node->_value > node->_right->_value)) {
       return -1;
     }
+    // check color of node and children
+    if (node->_color == TreeColor::RED && node->_left && node->_right &&
+        (node->_left->_color == TreeColor::RED &&
+         node->_right->_color == TreeColor::RED)) {
+      return -1;
+    }
     auto leftCount = checkEachPath(node->_left, black_count);
     auto rightCount = checkEachPath(node->_right, black_count);
+    // check black count
     return leftCount == rightCount ? leftCount : -1;
   }
   void fixupAfterInsert(NodeSPtr node) {
@@ -434,9 +482,8 @@ class RBTree {
       return;
     }
     if (node->_parent == _root) {
-      // case2 only 2 node and red root node in tree.
       // need to change root color to black
-      if (_count == 2 && _root->_color == TreeColor::RED) [[unlikely]] {
+      if (_root->_color == TreeColor::RED) [[unlikely]] {
         _root->_color = TreeColor::BLACK;
         return;
       }
@@ -515,6 +562,10 @@ class RBTree {
     }
     grandParent->_color = TreeColor::RED;
     parent->_color = TreeColor::BLACK;
+  }
+  void swapNodePtr(NodeSPtr& lhs, NodeSPtr& rhs) {
+    std::swap(lhs->_value, rhs->_value);
+    std::swap(lhs, rhs);
   }
 
  private:

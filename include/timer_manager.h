@@ -18,24 +18,21 @@ namespace planck {
 
 class TimerManager {
  public:
-  explicit TimerManager(bool is_low_precision = false)
-    : low_precision(is_low_precision) {
-    // if (low_precision)
-    //   _control_stg = std::make_unique<LowSpeedControlStg>();
-    // else
-    //   _control_stg = std::make_unique<HighSpeedControlStg>();
-  }
-  // must use std::move to transfer the ownership of the timer
+  explicit TimerManager(bool is_low_precision = false);
+
   ID addTimer(planck::Timer&& timer);
   void removeTimer(ID id);
+  void start();
+  void stop();
 
   void run();
 
  private:
-  bool low_precision = false;
-  Timer _current_timer;
+  bool _low_precision = false;
+  bool _start = false;
+  Timer _current_timer{};
   // ControlStgUPtr _control_stg;
-  lz::rbtree::RBTree<Timer> _timer_container;
+  lz::rbtree::RBTree<Timer> _timer_container{};
 };
 
 }  // namespace planck

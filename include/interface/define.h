@@ -11,7 +11,6 @@
 namespace planck {
 class Timer;
 class ControlStg;
-static double frequence = lz::getFrequencyGHz();
 static std::size_t timer_id = 0;
 
 using ID = std::size_t;

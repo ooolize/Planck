@@ -7,15 +7,28 @@
 
 #include "timer_manager.h"
 
+#include <sched.h>
+
 #include <cassert>
 #include <thread>
 
 #include "utils/time.h"
 namespace planck {
 
+TimerManager::TimerManager(bool is_low_precision)
+  : _low_precision(is_low_precision) {
+}
+
 ID TimerManager::addTimer(planck::Timer&& timer) {
+#ifdef DEBUG
+  std::cout << "addTimer rdtsc " << timer.getRdtscTime() << std::endl;
+#endif
+
   timer.setId(++timer_id);
-  _timer_container.insert(std::move(timer));
+  _timer_container.insert(timer);
+
+  auto t = _timer_container.findMin();
+  _current_timer = t ? t->_value : Timer();
   return timer_id;
 }
 
@@ -26,9 +39,25 @@ void TimerManager::removeTimer(ID id) {
   }
   _timer_container.remove(result->_value);
 }
+void TimerManager::start() {
+  _start = true;
+  std::thread t(&TimerManager::run, this);
+  t.join();
+}
+
+void TimerManager::stop() {
+  _start = false;
+  // TODO() 同步
+}
 
 void TimerManager::run() {
-  while (true) {
+  int cpu = sched_getcpu();  // 获取当前线程所在的 CPU 核心编号
+  std::cout << "Thread running on CPU: " << cpu << std::endl;
+  while (1) {
+    if (!_timer_container.size()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      continue;
+    }
     _current_timer.getControlStg()->strategy(_current_timer);
     // if not remove
     auto min_timer = _timer_container.findMin()->_value;

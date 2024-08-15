@@ -37,8 +37,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR} ${CONAN_
 link_directories(${PROJECT_SOURCE_DIR}/lib)
 
 # 添加子目录
-# add_subdirectory(src)
-add_subdirectory(test)
+add_subdirectory(src)
+# add_subdirectory(test)
 # add_executable(pattern main.cpp)
 
 # # 添加链接库

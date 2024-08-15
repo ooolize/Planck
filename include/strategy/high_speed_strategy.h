@@ -20,6 +20,6 @@ class HighSpeedControlStg : public ControlStg {
   void strategy(const Timer& current_timer) override;
 
  private:
-  std::size_t _before_wake_us = 30;
+  std::size_t _before_wake_us = 30 * 1000 * 1000;
 };
 }  // namespace planck

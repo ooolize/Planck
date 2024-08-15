@@ -49,5 +49,6 @@ class Timer {
   bool _status = false;
   CallBack _callback{};
   ControlStgSPtr _control_stg{};
+  static double _frequence;
 };
 }  // namespace planck

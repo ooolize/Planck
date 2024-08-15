@@ -8,6 +8,8 @@
 
 #include <cmath>
 namespace planck {
+
+double Timer::_frequence = lz::getFrequencyGHz();
 Timer::Timer(ID id) : _id(id) {
 }
 
@@ -27,13 +29,21 @@ Timer::Timer(TimeStampNs timestamp,
     _control_stg = std::make_shared<HighSpeedControlStg>();
   }
   auto delt = timestamp - lz::getTimeStampNs();
-  _rdtsc_timestamp =
-    lz::nanoTime2rdtsc(delt, lz::getFrequencyGHz()) + lz::rdtsc();
+  _rdtsc_timestamp = lz::nanoTime2rdtsc(delt, _frequence) + lz::rdtsc();
+#ifdef DEBUG
+  std::cout << "delt ns: " << delt << std::endl;
+  std::cout << "set rdtsc time: " << _rdtsc_timestamp << std::endl;
+#endif
 }
 
 NanoTime Timer::getSleepTime() const {
+#ifdef DEBUG
+  std::cout << "current rdtsc: " << lz::rdtsc() << std::endl;
+  std::cout << "set rdtsc: " << _rdtsc_timestamp << std::endl;
+  std::cout << "_frequence: " << _frequence << std::endl;
+#endif
   // TODO(): narrow_cast.
-  return std::floor((lz::rdtsc() - _rdtsc_timestamp) / frequence);  // NOLINT
+  return std::floor((lz::rdtsc() - _rdtsc_timestamp) / _frequence);  // NOLINT
 }
 NanoTime Timer::getRdtscTime() const {
   return _rdtsc_timestamp;
