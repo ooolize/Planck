@@ -19,16 +19,27 @@ TimerManager::TimerManager(bool is_low_precision)
   : _low_precision(is_low_precision) {
 }
 
-ID TimerManager::addTimer(planck::Timer&& timer) {
+ID TimerManager::addTimer(planck::Timer timer) {
 #ifdef DEBUG
-  std::cout << "addTimer rdtsc " << timer.getRdtscTime() << std::endl;
+  auto tmp1 = lz::rdtscp();
 #endif
 
   timer.setId(++timer_id);
   _timer_container.insert(timer);
-
+  // #ifdef DEBUG
+  //   std::cout << "add timer cost1: "
+  //             << lz::spendTimeNs(start, lz::rdtscp(), 3.69306) << std::endl;
+  // #endif
   auto t = _timer_container.findMin();
+  // #ifdef DEBUG
+  //   std::cout << "add timer cost2: "
+  //             << lz::spendTimeNs(start, lz::rdtscp(), 3.69306) << std::endl;
+  // #endif
   _current_timer = t ? t->_value : Timer();
+#ifdef DEBUG
+  std::cout << "add timer cost " << lz::spendTimeNs(tmp1, lz::rdtscp(), 3.69306)
+            << std::endl;
+#endif
   return timer_id;
 }
 
@@ -58,7 +69,19 @@ void TimerManager::run() {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
       continue;
     }
+    // #ifdef DEBUG
+    //     auto start = lz::rdtscp();
+    // #endif
     _current_timer.getControlStg()->strategy(_current_timer);
+    // #ifdef DEBUG
+    //     auto end = lz::rdtscp();
+    //     std::cout << "===>after stg: set timer spend time: "
+    //               << lz::spendTimeNs(
+    //                    start,
+    //                    end, 3.69306)
+    //               << std::endl;
+    // #endif
+
     // if not remove
     auto min_timer = _timer_container.findMin()->_value;
     if (_current_timer.getId() == min_timer.getId()) {

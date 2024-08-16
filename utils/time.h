@@ -104,6 +104,8 @@ inline float getFrequencyGHz() {
   // return 3.7;
 }
 
+// get current time stamp in ns
+// average cost 70 cycle(17.5ns)
 inline std::size_t getTimeStampNs() {
   return std::chrono::duration_cast<std::chrono::nanoseconds>(
            std::chrono::system_clock::now().time_since_epoch())

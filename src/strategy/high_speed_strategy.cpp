@@ -9,27 +9,42 @@
 namespace planck {
 HighSpeedControlStg::HighSpeedControlStg(std::size_t before_wake_us)
   : _before_wake_us(before_wake_us) {
-  auto a = 1;
-  auto b = 2;
-  std::swap(a, b);
 }
 void HighSpeedControlStg::strategy(const Timer& current_timer) {
-  // first sleep
   auto sleep_time = current_timer.getSleepTime();
-#ifdef DEBUG
-  std::cout << "HighSpeedControlStg::strategy sleep " << sleep_time
-            << std::endl;
-  auto before_sleep = lz::rdtscp();
-#endif
+
+  // #ifdef DEBUG
+  //   auto before_sleep = lz::rdtscp();
+  // #endif
+
+  // first sleep
   std::this_thread::sleep_for(
     std::chrono::nanoseconds(sleep_time - _before_wake_us));
-// before the timer should be waked up.busy query rdstc
-#ifdef DEBUG
-  std::cout << "wake up from sleep has spend time: "
-            << lz::spendTimeNs(before_sleep, lz::rdtscp(), 3.69306)
-            << std::endl;
-#endif
+
+  // #ifdef DEBUG
+  //   auto after_sleep = lz::rdtscp();
+  //   std::cout << "real sleep time: "
+  //             << lz::spendTimeNs(before_sleep, after_sleep, 3.69306)
+  //             << "===>set timer spend time:"
+  //             << lz::spendTimeNs(current_timer._rdtsc_timestamp_real_start,
+  //                                after_sleep,
+  //                                3.69306)
+  //             << std::endl;
+  // #endif
+
+  // before the timer should be waked up.
+  // busy wait rdstc
   while (lz::rdtscp() < current_timer.getRdtscTime());
+  // #ifdef DEBUG
+  //   auto current_rdtsc = lz::rdtscp();
+  //   std::cout << "busy wait spend time: "
+  //             << lz::spendTimeNs(after_sleep, current_rdtsc, 3.69306)
+  //             << "===>set timer spend time:"
+  //             << lz::spendTimeNs(current_timer._rdtsc_timestamp_real_start,
+  //                                current_rdtsc,
+  //                                3.69306)
+  //             << std::endl;
+  // #endif
   return;
 }
 }  // namespace planck

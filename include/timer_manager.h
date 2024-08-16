@@ -20,7 +20,7 @@ class TimerManager {
  public:
   explicit TimerManager(bool is_low_precision = false);
 
-  ID addTimer(planck::Timer&& timer);
+  ID addTimer(planck::Timer timer);
   void removeTimer(ID id);
   void start();
   void stop();
