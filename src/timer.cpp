@@ -7,6 +7,7 @@
 #include "timer.h"
 
 #include <cmath>
+#include <iomanip>
 namespace planck {
 
 double Timer::_frequence = lz::getFrequencyGHz();
@@ -29,27 +30,49 @@ Timer::Timer(TimeStampNs timestamp,
     _control_stg = std::make_shared<HighSpeedControlStg>();
   }
   auto delt = timestamp - lz::getTimeStampNs();
-  _rdtsc_timestamp = lz::nanoTime2rdtsc(delt, _frequence) + lz::rdtsc();
+  _rdtsc_timestamp_real_start = lz::rdtscp();
+  _rdtsc_timestamp_plan_wake =
+    lz::nanoTime2rdtsc(delt, _frequence) + _rdtsc_timestamp_real_start;
 #ifdef DEBUG
   std::cout << "delt ns: " << delt << std::endl;
-  std::cout << "set rdtsc time: " << _rdtsc_timestamp << std::endl;
+  std::cout << "set rdtsc time: " << _rdtsc_timestamp_plan_wake << std::endl;
 #endif
 }
 
 NanoTime Timer::getSleepTime() const {
 #ifdef DEBUG
-  std::cout << "current rdtsc: " << lz::rdtsc() << std::endl;
-  std::cout << "set rdtsc: " << _rdtsc_timestamp << std::endl;
+  auto tmp = lz::rdtscp();
+  auto delta_rdtsc = (tmp - _rdtsc_timestamp_plan_wake);
+  auto delta_ns = delta_rdtsc / _frequence;
+  double delta_floor_ns = std::floor(delta_ns);
+  NanoTime sleep_time = delta_floor_ns;
+  std::cout << "current rdtsc: " << tmp << std::endl;
+  std::cout << "set rdtsc: " << _rdtsc_timestamp_plan_wake << std::endl;
   std::cout << "_frequence: " << _frequence << std::endl;
+  std::cout << "delta_rdtsc: " << delta_rdtsc << std::endl;
+  std::cout << "delta_ns: " << delta_ns << std::endl;
+  std::cout << "delta_floor_ns: " << delta_floor_ns << std::endl;
+  std::cout << "sleep_time: " << sleep_time << std::endl;
 #endif
   // TODO(): narrow_cast.
-  return std::floor((lz::rdtsc() - _rdtsc_timestamp) / _frequence);  // NOLINT
+  return std::floor((_rdtsc_timestamp_plan_wake - lz::rdtscp()) /
+                    _frequence);  // NOLINT
 }
 NanoTime Timer::getRdtscTime() const {
-  return _rdtsc_timestamp;
+  return _rdtsc_timestamp_plan_wake;
 }
 void Timer::OnTimer() {
   _callback();
+  _rdtsc_timestamp_real_wake = lz::rdtscp();
+  // #ifdef DEBUG
+  // TODO(): narrow_cast.
+
+  std::cout << std::fixed << "real spend time: "
+            << std::floor(
+                 (_rdtsc_timestamp_real_wake - _rdtsc_timestamp_real_start) /
+                 _frequence)
+            << std::endl;  // NOLINT
+  // #endif
 }
 ID Timer::getId() const {
   return _id;

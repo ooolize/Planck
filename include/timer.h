@@ -42,7 +42,9 @@ class Timer {
 
  private:
   ID _id{};
-  NanoTime _rdtsc_timestamp{};
+  NanoTime _rdtsc_timestamp_plan_wake{};
+  NanoTime _rdtsc_timestamp_real_start{};
+  NanoTime _rdtsc_timestamp_real_wake{};
   TimeStampNs _timestamp{};
   int _time_interval{};
   int _repeat{};
