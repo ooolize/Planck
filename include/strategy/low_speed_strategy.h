@@ -14,7 +14,7 @@ namespace planck {
 class LowSpeedControlStg : public ControlStg {
  public:
   LowSpeedControlStg() = default;
-  void strategy(const Timer& current_timer) override {
+  void strategy(Timer& current_timer) override {
     std::this_thread::sleep_for(
       std::chrono::nanoseconds(current_timer.getSleepTime()));
   }

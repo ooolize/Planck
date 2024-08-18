@@ -76,6 +76,8 @@ inline std::size_t spendTimeNs(std::size_t start,
   return (end - start) / frequencyGHz;
 }
 
+// get CPU frequency in GHz
+// average cost 127562 cycle(31.89us)
 inline float getFrequencyGHz() {
   std::ifstream cpuinfo("/proc/cpuinfo");
   std::string line;

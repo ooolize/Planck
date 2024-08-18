@@ -10,7 +10,7 @@ namespace planck {
 
 class ControlStg {
  public:
-  virtual void strategy(const Timer& current_timer) = 0;
+  virtual void strategy(Timer& current_timer) = 0;
 
   virtual ~ControlStg() noexcept = default;
   ControlStg(const ControlStg&) = delete;

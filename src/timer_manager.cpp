@@ -19,27 +19,29 @@ TimerManager::TimerManager(bool is_low_precision)
   : _low_precision(is_low_precision) {
 }
 
-ID TimerManager::addTimer(planck::Timer timer) {
-#ifdef DEBUG
-  auto tmp1 = lz::rdtscp();
-#endif
+ID TimerManager::addTimer(planck::Timer&& timer) {
+  // #ifdef DEBUG
+  //   auto tmp1 = lz::rdtscp();
+  // #endif
 
   timer.setId(++timer_id);
-  _timer_container.insert(timer);
+  _timer_container.insert(std::move(timer));
   // #ifdef DEBUG
   //   std::cout << "add timer cost1: "
   //             << lz::spendTimeNs(start, lz::rdtscp(), 3.69306) << std::endl;
   // #endif
-  auto t = _timer_container.findMin();
+  // auto t = _timer_container.findMin();
   // #ifdef DEBUG
   //   std::cout << "add timer cost2: "
   //             << lz::spendTimeNs(start, lz::rdtscp(), 3.69306) << std::endl;
   // #endif
-  _current_timer = t ? t->_value : Timer();
-#ifdef DEBUG
-  std::cout << "add timer cost " << lz::spendTimeNs(tmp1, lz::rdtscp(), 3.69306)
-            << std::endl;
-#endif
+  // _current_timer = t ? t->_value : Timer();
+  _current_timer = timer;
+  // #ifdef DEBUG
+  //   std::cout << "add timer cost " << lz::spendTimeNs(tmp1,
+  //   lz::rdtscp(), 3.69306)
+  //             << std::endl;
+  // #endif
   return timer_id;
 }
 
@@ -62,33 +64,41 @@ void TimerManager::stop() {
 }
 
 void TimerManager::run() {
-  int cpu = sched_getcpu();  // 获取当前线程所在的 CPU 核心编号
-  std::cout << "Thread running on CPU: " << cpu << std::endl;
+  // int cpu = sched_getcpu();  // 获取当前线程所在的 CPU 核心编号
+  // std::cout << "Thread running on CPU: " << cpu << std::endl;
   while (1) {
     if (!_timer_container.size()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
       continue;
     }
-    // #ifdef DEBUG
-    //     auto start = lz::rdtscp();
-    // #endif
+#ifdef DEBUG
+    // auto start = lz::rdtscp();
+#endif
     _current_timer.getControlStg()->strategy(_current_timer);
-    // #ifdef DEBUG
-    //     auto end = lz::rdtscp();
-    //     std::cout << "===>after stg: set timer spend time: "
-    //               << lz::spendTimeNs(
-    //                    start,
-    //                    end, 3.69306)
-    //               << std::endl;
-    // #endif
+    // _current_timer._rdtsc_timestamp_plan_wake = lz::rdtscp();
+#ifdef DEBUG
+    // auto tmp = lz::rdtscp();
+    // auto end = tmp - _current_timer.getRdtscTime();
+    // std::cout << "===>after stg: set timer spend time: "
+    //           << lz::spendTimeNs(start, end, 3.69306) << std::endl;
 
+    // std::cout << "after stg cost: " << lz::spendTimeNs(start, tmp, 3.69306)
+    //           << std::endl;
+// std::cout << "end - plan wake time: " << end << std::endl;
+#endif
+    // _current_timer.OnTimer();
+#ifdef DEBUG
+    // std::cout << "stg cost: " << lz::spendTimeNs(start, tmp, 3.69306)
+    //           << std::endl;
+#endif
+    return;
     // if not remove
-    auto min_timer = _timer_container.findMin()->_value;
-    if (_current_timer.getId() == min_timer.getId()) {
-      _current_timer.OnTimer();
-      removeTimer(_current_timer.getId());
-    }
-    _current_timer = min_timer;
+    // auto min_timer = _timer_container.findMin()->_value;
+    // if (_current_timer.getId() == min_timer.getId()) {
+    //   _current_timer.OnTimer();
+    //   removeTimer(_current_timer.getId());
+    // }
+    // _current_timer = min_timer;
   }
 }
 }  // namespace planck

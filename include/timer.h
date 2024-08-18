@@ -24,7 +24,7 @@ class Timer {
 
   explicit Timer(ID id);
   Timer() = default;
-  Timer(TimeStampNs timestamp,
+  Timer(TimeStampNs offset,
         int time_interval,
         int repeat,
         CallBack callback,
@@ -42,15 +42,19 @@ class Timer {
 
   NanoTime _rdtsc_timestamp_real_start{};
 
- private:
-  ID _id{};
   NanoTime _rdtsc_timestamp_plan_wake{};
   NanoTime _rdtsc_timestamp_real_wake{};
-  TimeStampNs _timestamp{};
+
+  CallBack _callback{};
+
+ private:
+  ID _id{};
+  //   TimeStampNs _timestamp{};
+  //   NanoTime _delt_rdtsc{};
+  //   NanoTime _delt_timestamp{};
   int _time_interval{};
   int _repeat{};
-  bool _status = false;
-  CallBack _callback{};
+  //   bool _status = false;
   ControlStgSPtr _control_stg{};
   static double _frequence;
 };
