@@ -6,6 +6,7 @@
 
 # rm -rf build/*;conan install . ;cmake --preset conan-release ;cmake --build --preset conan-release
 # rm -rf build/*;conan install . --settings=build_type=Debug;cmake --preset conan-debug -DCMAKE_BUILD_TYPE=Debug;cmake --build --preset conan-debug
+# /usr/lib/linux-tools/6.8.0-40-generic/perf
 cmake_minimum_required(VERSION 3.5)
 
 # 如果windows下想使用g++ 需要编译时 cmake -G "MinGW Makefiles" ..

@@ -77,7 +77,7 @@ class RBTree {
   using NodeSPtr = std::shared_ptr<Node>;
   using NodeUPtr = std::unique_ptr<Node>;
   // TODO() not Value&& or const Value&. Value deal all condition.
-  void insert(Value value) {
+  void insert(Value&& value) {
     // first insert as nomal BST
     auto node = insertValue(_root, std::forward<Value>(value));
     // then rotate or change color to keep balance
