@@ -13,7 +13,6 @@
 namespace lz {
 namespace test {
 namespace rbtree {
-
 constexpr std::size_t START_NUM = 0;
 constexpr std::size_t COUNT = 10;
 constexpr std::size_t END_NUM = START_NUM + COUNT;

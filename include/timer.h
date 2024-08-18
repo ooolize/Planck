@@ -41,20 +41,15 @@ class Timer {
   void setStatus(bool status);
 
   NanoTime _rdtsc_timestamp_real_start{};
-
   NanoTime _rdtsc_timestamp_plan_wake{};
   NanoTime _rdtsc_timestamp_real_wake{};
 
-  CallBack _callback{};
-
  private:
+  CallBack _callback{};
   ID _id{};
-  //   TimeStampNs _timestamp{};
-  //   NanoTime _delt_rdtsc{};
-  //   NanoTime _delt_timestamp{};
   int _time_interval{};
   int _repeat{};
-  //   bool _status = false;
+  bool _status = false;
   ControlStgSPtr _control_stg{};
   static double _frequence;
 };

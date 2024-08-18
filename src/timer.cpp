@@ -22,47 +22,20 @@ Timer::Timer(TimeStampNs offset,
   : _time_interval(time_interval),
     _repeat(repeat),
     _callback(callback),
-    _control_stg(std::move(control_stg)) {
-#ifdef DEBUG
-  // auto tmp1 = lz::rdtscp();
-#endif
-  // TODO(): must write in the inner func . why i can not write as default param
-  // auto curr_timestamp = lz::getTimeStampNs();
-  // auto _delt_timestamp = timestamp - curr_timestamp;
-
+    _control_stg(control_stg) {
   auto _delt_rdtsc = lz::nanoTime2rdtsc(offset, 3.69306);
-  // std::cout << "delt timestamp: " << _delt_timestamp << std::endl;
-  // std::cout << "delt rdtsc: " << _delt_rdtsc << std::endl;
-  // _delt_rdtsc = delta_rdtsc;
-  _rdtsc_timestamp_real_start = lz::rdtscp();
-  _rdtsc_timestamp_plan_wake = _delt_rdtsc + _rdtsc_timestamp_real_start;
+  _rdtsc_timestamp_real_start = lz::rdtscp();  // NOLINT
+  _rdtsc_timestamp_plan_wake =                 // NOLINT
+    _delt_rdtsc + _rdtsc_timestamp_real_start;
 
+  // TODO(): must write in the inner func . why i can not write as default param
   if (!_control_stg) {
     _control_stg = std::make_shared<HighSpeedControlStg>();
   }
-
-#ifdef DEBUG
-  // auto end = lz::rdtscp();
-  // std::cout << "create timer cost " << lz::spendTimeNs(tmp1, end, 3.69306)
-  //           << std::endl;
-#endif
 }
 
 NanoTime Timer::getSleepTime() const {
   auto curr = lz::rdtscp();
-#ifdef DEBUG
-  // auto delta_rdtsc = (tmp - _rdtsc_timestamp_plan_wake);
-  // auto delta_ns = delta_rdtsc / _frequence;
-  // double delta_floor_ns = std::floor(delta_ns);
-  // NanoTime sleep_time = delta_floor_ns;
-  // std::cout << "current rdtsc: " << tmp << std::endl;
-  // std::cout << "set rdtsc: " << _rdtsc_timestamp_plan_wake << std::endl;
-  // std::cout << "_frequence: " << _frequence << std::endl;
-  // std::cout << "delta_rdtsc: " << delta_rdtsc << std::endl;
-  // std::cout << "delta_ns: " << delta_ns << std::endl;
-  // std::cout << "delta_floor_ns: " << delta_floor_ns << std::endl;
-  // std::cout << "sleep_time: " << sleep_time << std::endl;
-#endif
   // TODO(): narrow_cast.
   return std::floor((_rdtsc_timestamp_plan_wake - curr) / 3.69306);  // NOLINT
 }
@@ -72,7 +45,7 @@ NanoTime Timer::getRdtscTime() const {
 void Timer::OnTimer() {
   _rdtsc_timestamp_real_wake = lz::rdtscp();
   _callback();
-  // #ifdef DEBUG
+#ifdef DEBUG
   // TODO(): narrow_cast.
 
   std::cout << std::fixed << "real spend time: "
@@ -85,7 +58,7 @@ void Timer::OnTimer() {
                  (_rdtsc_timestamp_plan_wake - _rdtsc_timestamp_real_start) /
                  _frequence)
             << std::endl;  // NOLINT
-  // #endif
+#endif
 }
 ID Timer::getId() const {
   return _id;
