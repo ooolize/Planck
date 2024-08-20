@@ -9,9 +9,11 @@
 #include <unistd.h>
 
 #include <chrono>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 namespace lz {
+using size_t = std::size_t;
 
 // if not instruction is executed in order
 // average cost 20 cycle(5ns)
@@ -112,6 +114,26 @@ inline std::size_t getTimeStampNs() {
   return std::chrono::duration_cast<std::chrono::nanoseconds>(
            std::chrono::system_clock::now().time_since_epoch())
     .count();
+}
+
+// transform time string to nano seconds
+// format "12:34:56 123456"
+inline uint64_t timeToNanoseconds(const std::string& timeStr) {
+  // 解析时间字符串
+  int hours, minutes, seconds, microseconds;
+  char colon;
+  std::stringstream ss(timeStr);
+  ss >> hours >> colon >> minutes >> colon >> seconds >> microseconds;
+
+  // 创建一个表示当天时间的时间点
+  using namespace std::chrono;
+  auto timeSinceMidnight =
+    hours * 1h + minutes * 1min + seconds * 1s + microseconds * 1us;
+
+  // 转换为纳秒
+  uint64_t totalNanoseconds =
+    duration_cast<nanoseconds>(timeSinceMidnight).count();
+  return totalNanoseconds;
 }
 
 }  // namespace lz

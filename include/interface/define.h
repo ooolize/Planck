@@ -13,6 +13,7 @@ class Timer;
 class ControlStg;
 static std::size_t timer_id = 0;
 
+using size_t = std::size_t;
 using ID = std::size_t;
 using NanoTime = std::uint64_t;
 using GHz = float;

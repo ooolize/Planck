@@ -15,21 +15,49 @@
 #include "utils/time.h"
 namespace planck {
 
-TimerManager::TimerManager(bool is_low_precision)
-  : _low_precision(is_low_precision) {
+ID TimerManager::addTimer(const std::string& time_point,
+                          int time_interval,
+                          int repeat,
+                          CallBack callback,
+                          ControlStgSPtr control_stg) {
+  TimeStampNs target_time = lz::timeToNanoseconds(time_point);
+  auto curr_time = lz::getTimeStampNs();
+  Timer timer(
+    target_time - curr_time, time_interval, repeat, callback, control_stg);
+  timer._id = ++timer_id;
+  return addTimer(std::move(timer));
+}
+
+ID TimerManager::addTimer(TimeStampNs offset,
+                          int time_interval,
+                          int repeat,
+                          CallBack callback,
+                          ControlStgSPtr control_stg) {
+  Timer timer(offset, time_interval, repeat, callback, control_stg);
+  timer._id = ++timer_id;
+  return addTimer(std::move(timer));
 }
 
 ID TimerManager::addTimer(planck::Timer&& timer) {  // NOLINT
-  timer.setId(++timer_id);
+  std::size_t count = 0;
+
+  while (++count < timer._repeat) {
+    auto new_timer = timer;
+    auto interval_offset =
+      lz::nanoTime2rdtsc(timer._time_interval, Timer::_frequence);
+    new_timer._id = ++timer_id;
+    new_timer._repeat = 0;
+    new_timer._rdtsc_timestamp_plan_wake =
+      timer._rdtsc_timestamp_plan_wake + interval_offset * count;
+    _timer_container.insert(std::move(new_timer));
+  }
   _timer_container.insert(std::move(timer));
-
   _current_timer = timer;
-
   return timer_id;
 }
 
-void TimerManager::removeTimer(ID id) {
-  auto result = _timer_container.find(Timer(id));
+void TimerManager::removeTimer(const planck::Timer& timer) {
+  auto result = _timer_container.find(timer);
   if (!result) [[unlikely]] {
     return;
   }
@@ -52,17 +80,17 @@ void TimerManager::run() {
   while (1) {
     if (!_timer_container.size()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      // std::cout << " empty " << std::endl;
       continue;
     }
-    _current_timer.getControlStg()->strategy(_current_timer);
-    return;
-    // if not remove
-    auto min_timer = _timer_container.findMin()->_value;
-    if (_current_timer.getId() == min_timer.getId()) {
-      _current_timer.OnTimer();
-      removeTimer(_current_timer.getId());
+    _current_timer._control_stg->strategy(_current_timer);
+    removeTimer(_current_timer);
+
+    auto min_node = _timer_container.findMin();
+    if (!min_node) {
+      continue;
     }
-    _current_timer = min_timer;
+    _current_timer = min_node->_value;
   }
 }
 }  // namespace planck

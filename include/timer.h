@@ -31,26 +31,19 @@ class Timer {
         ControlStgSPtr control_stg = nullptr);
 
   NanoTime getSleepTime() const;
-  NanoTime getRdtscTime() const;
-  ID getId() const;
-  bool getStatus() const;
-  ControlStgSPtr getControlStg() const;
-
   void OnTimer();
-  void setId(ID id);
-  void setStatus(bool status);
+
+ public:
+  ID _id{};
+  int _repeat{};
+  int _time_interval{};
+  CallBack _callback{};
+  ControlStgSPtr _control_stg{};
 
   NanoTime _rdtsc_timestamp_real_start{};
   NanoTime _rdtsc_timestamp_plan_wake{};
   NanoTime _rdtsc_timestamp_real_wake{};
 
- private:
-  CallBack _callback{};
-  ID _id{};
-  int _time_interval{};
-  int _repeat{};
-  bool _status = false;
-  ControlStgSPtr _control_stg{};
   static double _frequence;
 };
 }  // namespace planck

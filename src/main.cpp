@@ -22,11 +22,10 @@ int main() {
   constexpr std::size_t ms = us * 1000;
   constexpr std::size_t s = ms * 1000;
   auto offset = s * 1 + ms * 10 + us * 5;
-  std::size_t count = 1000 * 1000;
+  auto interval = 0 * ms + 10 * us;
   std::cout << "offset: " << offset << std::endl;
-  auto func = []() { std::cout << "Hello World" << std::endl; };
-  planck::Timer timer(offset, 0, 1, func);
-  manager.addTimer(std::move(timer));
+  manager.addTimer(
+    offset, interval, 5, []() { std::cout << "Hello World" << std::endl; });
   manager.run();
   return 0;
 }

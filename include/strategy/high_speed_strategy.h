@@ -20,7 +20,9 @@ class HighSpeedControlStg : public ControlStg {
   void strategy(Timer& current_timer) override;
 
  private:
+  // 至少busywait时间
   std::size_t _before_wake = 100 * 1000;
+  // 越高 busywait时间越长 sleep次数越少
   std::size_t _convergence_coefficent = 8;
 };
 }  // namespace planck

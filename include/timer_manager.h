@@ -7,32 +7,48 @@
 
 #pragma once
 #include <memory>
+#include <queue>
+#include <string>
 
 #include "interface/control_stg.h"
 #include "strategy/high_speed_strategy.h"
 #include "strategy/low_speed_strategy.h"
 #include "timer.h"
 #include "utils/rbtree.h"
-
 namespace planck {
 
 class TimerManager {
  public:
-  explicit TimerManager(bool is_low_precision = false);
+  TimerManager() = default;
 
   ID addTimer(planck::Timer&& timer);
-  void removeTimer(ID id);
+
+  // 指定距离 当前时刻偏移量
+  ID addTimer(TimeStampNs offset,
+              int time_interval,
+              int repeat,
+              CallBack callback,
+              ControlStgSPtr control_stg = nullptr);
+
+  // 指定当天某个时刻(hh:mm:ss 123456)
+  ID addTimer(const std::string& time_point,
+              int time_interval,
+              int repeat,
+              CallBack callback,
+              ControlStgSPtr control_stg = nullptr);
+
+  void removeTimer(const planck::Timer& timer);
   void start();
   void stop();
 
   void run();
 
  private:
-  bool _low_precision = false;
+  std::vector<int> v;
   bool _start = false;
   Timer _current_timer{};
-  // ControlStgUPtr _control_stg;
-  lz::rbtree::RBTree<Timer> _timer_container{};
+  lz::rbtree::RBTree<Timer> _timer_container{};  // Ready oncall
+  std::queue<Timer> _timer_queue{};              // out of 30s
 };
 
 }  // namespace planck

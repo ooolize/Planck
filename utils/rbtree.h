@@ -23,7 +23,7 @@ struct Node {
   using NodeUPtr = std::unique_ptr<Node>;
   using NodeSPtr = std::shared_ptr<Node>;
   Node() = default;
-  explicit Node(Value value) : _value(value) {
+  explicit Node(Value value) : _value(std::move(value)) {
   }
   Node(Value value, TreeColor color) : _value(value), _color(color) {
   }
@@ -77,9 +77,11 @@ class RBTree {
   using NodeSPtr = std::shared_ptr<Node>;
   using NodeUPtr = std::unique_ptr<Node>;
   // TODO() not Value&& or const Value&. Value deal all condition.
-  void insert(Value&& value) {
+  template <typename T>
+    requires std::is_convertible_v<T, Value>
+  void insert(T&& value) {
     // first insert as nomal BST
-    auto node = insertValue(_root, std::forward<Value>(value));
+    auto node = insertValue(_root, std::forward<T>(value));
     // then rotate or change color to keep balance
     fixupAfterInsert(node);
   };
@@ -279,7 +281,8 @@ class RBTree {
 
     // recolor(node->_parent->_parent);
   }
-  NodeSPtr insertValue(NodeSPtr node, Value&& value) {
+  template <typename T>
+  NodeSPtr insertValue(NodeSPtr node, T&& value) {
     if (node == nullptr) {
       _root = std::make_shared<Node>(value);
       ++_count;

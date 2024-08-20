@@ -19,11 +19,12 @@ Timer::Timer(TimeStampNs offset,
              int repeat,
              CallBack callback,
              ControlStgSPtr control_stg)
-  : _time_interval(time_interval),
-    _repeat(repeat),
+  : _repeat(repeat),
+    _time_interval(time_interval),
     _callback(callback),
     _control_stg(control_stg) {
-  auto _delt_rdtsc = lz::nanoTime2rdtsc(offset, 3.69306);
+  // maybe loss 50ns because _frequence accuracy
+  auto _delt_rdtsc = lz::nanoTime2rdtsc(offset, _frequence);
   _rdtsc_timestamp_real_start = lz::rdtscp();  // NOLINT
   _rdtsc_timestamp_plan_wake =                 // NOLINT
     _delt_rdtsc + _rdtsc_timestamp_real_start;
@@ -37,11 +38,11 @@ Timer::Timer(TimeStampNs offset,
 NanoTime Timer::getSleepTime() const {
   auto curr = lz::rdtscp();
   // TODO(): narrow_cast.
-  return std::floor((_rdtsc_timestamp_plan_wake - curr) / 3.69306);  // NOLINT
+  auto sleep_time =
+    _rdtsc_timestamp_plan_wake > curr ? _rdtsc_timestamp_plan_wake - curr : 0;
+  return std::floor(sleep_time / Timer::_frequence);  // NOLINT
 }
-NanoTime Timer::getRdtscTime() const {
-  return _rdtsc_timestamp_plan_wake;
-}
+
 void Timer::OnTimer() {
   _rdtsc_timestamp_real_wake = lz::rdtscp();
   _callback();
@@ -60,23 +61,13 @@ void Timer::OnTimer() {
             << std::endl;  // NOLINT
 #endif
 }
-ID Timer::getId() const {
-  return _id;
-}
-void Timer::setId(ID id) {
-  _id = id;
-}
-
-ControlStgSPtr Timer::getControlStg() const {
-  return _control_stg;
-}
 
 std::strong_ordering operator<=>(const Timer& lhs, const Timer& rhs) {
-  return lhs._id <=> rhs._id;
+  return lhs._rdtsc_timestamp_plan_wake <=> rhs._rdtsc_timestamp_plan_wake;
 }
 
 bool operator==(const Timer& lhs, const Timer& rhs) {
-  return lhs._id == rhs._id;
+  return lhs._rdtsc_timestamp_plan_wake == rhs._rdtsc_timestamp_plan_wake;
 }
 // inline bool operator<(const Timer& lhs, const Timer& rhs) {
 //   return lhs._id < rhs._id;
