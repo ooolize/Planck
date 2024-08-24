@@ -11,41 +11,50 @@ HighSpeedControlStg::HighSpeedControlStg(std::size_t before_wake_us)
   : _before_wake(before_wake_us) {
 }
 void HighSpeedControlStg::strategy(Timer& current_timer) {
-  auto sleep_time = current_timer.getSleepTime();
-  std::cout << "set sleep time: " << sleep_time << std::endl;
-  NanoTime unit_sleep_time = sleep_time / _convergence_coefficent;
+  // std::size_t to_target_time = 0;
+  // NanoTime unit_sleep_time = 0;
+  std::size_t to_target_time = current_timer.DurationCurrToWakeup();
+  NanoTime unit_sleep_time = 0;
+  NanoTime step_sleep_time = 0;
   NanoTime start = 0;
   NanoTime end = 0;
   NanoTime real_sleep_time = 0;
-  while (unit_sleep_time > _before_wake && sleep_time > 0) {
+  while (to_target_time > _before_wake) {
     // need do some thing .otherwise os will not schedule the thread
-    lz::rdtscp();
-
+    // lz::rdtscp();
+    // 必须每次求值 不能依赖real_sleep_time
+    to_target_time = current_timer.DurationCurrToWakeup();
+    step_sleep_time = to_target_time - to_target_time / _convergence_coefficent;
+    if (step_sleep_time < _1ms) {
+      step_sleep_time -= _sleep_compensation;
+    }
     start = lz::rdtscp();
-    std::this_thread::sleep_for(
-      std::chrono::nanoseconds(sleep_time - unit_sleep_time));
+    std::this_thread::sleep_for(std::chrono::nanoseconds(step_sleep_time));
     end = lz::rdtscp();
-    std::cout << "sleep time:"
-              << lz::spendTimeNs(start, end, current_timer._frequence)
-              << "plan time:" << sleep_time - unit_sleep_time << std::endl;
-
-    // sleep_time = unit_sleep_time * (1.1 / _convergence_coefficent - 0.1);
     real_sleep_time = lz::spendTimeNs(start, end, current_timer._frequence);
-    if (real_sleep_time > sleep_time) {
+    // std::cout << " real sleep time:" << real_sleep_time
+    //           << " plan sleep time:" << step_sleep_time
+    //           << " remaind sleep time:" << to_target_time << std::endl;
+
+    // if bias is too large , advance the time remaining
+    if (real_sleep_time > to_target_time) {
+      std::cout << " late" << std::endl;
       break;
     }
-    sleep_time = sleep_time - real_sleep_time;
-    unit_sleep_time = sleep_time / _convergence_coefficent;
-    // std::cout << "sleep_time: " << sleep_time << std::endl;
-    std::cout << " unit_sleep_time: " << unit_sleep_time << std::endl;
-  }
 
+    // std::cout << "to_target_time: " << to_target_time << std::endl;
+    // std::cout << " unit_sleep_time: " << unit_sleep_time << " end: " << end
+    //           << std::endl;
+  }
+  // end = lz::rdtscp();
+  // std::cout << " end: " << end << std::endl;
   // busy wait rdstc
   std::size_t current_rdtsc = 0;
   while (current_rdtsc < current_timer._rdtsc_timestamp_plan_wake) {
     current_rdtsc = lz::rdtscp();
   };
-
+  // end = lz::rdtscp();
+  // std::cout << " end2: " << end << std::endl;
   current_timer.OnTimer();
 
   return;

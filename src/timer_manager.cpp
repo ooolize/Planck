@@ -15,6 +15,10 @@
 #include "utils/time.h"
 namespace planck {
 
+Timer& TimerManager::getCurrentTimer() {
+  return _current_timer;
+}
+
 ID TimerManager::addTimer(const std::string& time_point,
                           int time_interval,
                           int repeat,
@@ -79,9 +83,9 @@ void TimerManager::run() {
   // std::cout << "Thread running on CPU: " << cpu << std::endl;
   while (1) {
     if (!_timer_container.size()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      // std::this_thread::sleep_for(std::chrono::milliseconds(1));
       // std::cout << " empty " << std::endl;
-      continue;
+      break;
     }
     _current_timer._control_stg->strategy(_current_timer);
     removeTimer(_current_timer);

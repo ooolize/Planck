@@ -42,6 +42,7 @@ class TimerManager {
   void stop();
 
   void run();
+  Timer& getCurrentTimer();
 
  private:
   std::vector<int> v;

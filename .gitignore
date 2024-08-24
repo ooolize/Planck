@@ -3,3 +3,4 @@ build/*
 bin/*
 3rdparty/*
 CMakeUserPresets.json
+timer.txt

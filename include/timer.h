@@ -30,7 +30,7 @@ class Timer {
         CallBack callback,
         ControlStgSPtr control_stg = nullptr);
 
-  NanoTime getSleepTime() const;
+  NanoTime DurationCurrToWakeup() const;
   void OnTimer();
 
  public:

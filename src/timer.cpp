@@ -35,7 +35,7 @@ Timer::Timer(TimeStampNs offset,
   }
 }
 
-NanoTime Timer::getSleepTime() const {
+NanoTime Timer::DurationCurrToWakeup() const {
   auto curr = lz::rdtscp();
   // TODO(): narrow_cast.
   auto sleep_time =
@@ -44,21 +44,22 @@ NanoTime Timer::getSleepTime() const {
 }
 
 void Timer::OnTimer() {
-  _rdtsc_timestamp_real_wake = lz::rdtscp();
+  // _rdtsc_timestamp_real_wake = lz::rdtscp();
   _callback();
 #ifdef DEBUG
   // TODO(): narrow_cast.
-
-  std::cout << std::fixed << "real spend time: "
-            << std::floor(
-                 (_rdtsc_timestamp_real_wake - _rdtsc_timestamp_real_start) /
-                 _frequence)
-            << std::endl;  // NOLINT
-  std::cout << std::fixed << "plan spend time: "
-            << std::floor(
-                 (_rdtsc_timestamp_plan_wake - _rdtsc_timestamp_real_start) /
-                 _frequence)
-            << std::endl;  // NOLINT
+  // std::cout << "real_wake" << _rdtsc_timestamp_real_wake << std::endl;
+  // std::cout << "plan_wake" << _rdtsc_timestamp_plan_wake << std::endl;
+  // std::cout << std::fixed << "real spend time: "
+  //           << std::floor(
+  //                (_rdtsc_timestamp_real_wake - _rdtsc_timestamp_real_start) /
+  //                _frequence)
+  //           << std::endl;  // NOLINT
+  // std::cout << std::fixed << "plan spend time: "
+  //           << std::floor(
+  //                (_rdtsc_timestamp_plan_wake - _rdtsc_timestamp_real_start) /
+  //                _frequence)
+  //           << std::endl;  // NOLINT
 #endif
 }
 
