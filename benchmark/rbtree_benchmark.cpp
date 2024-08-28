@@ -47,7 +47,7 @@ static void remove(benchmark::State& state) {
 }
 
 // 注册函数和输入规模
-// BENCHMARK(insert)->RangeMultiplier(2)->Range(1 << 10, 1 << 20)->Complexity();
+BENCHMARK(insert)->RangeMultiplier(2)->Range(1 << 10, 1 << 20)->Complexity();
 BENCHMARK(remove)->RangeMultiplier(2)->Range(1 << 10, 1 << 20)->Complexity();
 BENCHMARK_MAIN();
 }  // namespace bc

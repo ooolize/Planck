@@ -12,28 +12,28 @@
 #include <numeric>
 #include <vector>
 
-#include "timer_manager.h"
+#include "locator/locator.h"
+#include "utils/system.h"
 #include "utils/time.h"
-
-void set_real_time_priority(pthread_t thread) {
-  struct sched_param param;
-  param.sched_priority = sched_get_priority_max(SCHED_FIFO);
-  pthread_setschedparam(thread, SCHED_FIFO, &param);
-}
+// void set_real_time_priority(pthread_t thread) {
+//   struct sched_param param;
+//   param.sched_priority = sched_get_priority_max(SCHED_FIFO);
+//   pthread_setschedparam(thread, SCHED_FIFO, &param);
+// }
 
 int main() {
   // 在线程中调用该函数以设置实时优先级
-  set_real_time_priority(pthread_self());
-  lz::setCPUAffinity(5);
+  // set_real_time_priority(pthread_self());
+  lz::system::setCPUAffinity(5);
   int cpu = sched_getcpu();  // 获取当前线程所在的 CPU 核心编号 3.69306
   std::cout << "Thread running on CPU: " << cpu << std::endl;
 
-  planck::TimerManager manager;
+  auto& manager = planck::Locator::getTimerManager();
   constexpr std::size_t ns = 1;
   constexpr std::size_t us = ns * 1000;
   constexpr std::size_t ms = us * 1000;
   constexpr std::size_t s = ms * 1000;
-  constexpr std::size_t count = 1000;
+  constexpr std::size_t count = 10;
   std::string file_name = "timer.txt";
   std::ofstream file(file_name);
   std::vector<std::size_t> v;
@@ -46,7 +46,9 @@ int main() {
   });
   auto timer = manager.getCurrentTimer();
   v.push_back(timer._rdtsc_timestamp_plan_wake);
-  manager.run();
+  manager.start();
+  std::cout << "main thread id = " << lz::system::gettid() << std::endl;
+  std::this_thread::sleep_for(std::chrono::seconds(3));
   // std::for_each(
   //   v.begin(), v.end(), [](auto& i) { std::cout << i << std::endl; });
   // 打印每两个之间的时间差
@@ -55,6 +57,6 @@ int main() {
     // std::cout << v[i] - v[i - 1] << std::endl;
   }
   file.close();
-  return 0;
+
+  exit(0);
 }
-// copy or move   perf

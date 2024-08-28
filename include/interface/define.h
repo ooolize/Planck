@@ -12,6 +12,8 @@
 namespace planck {
 class Timer;
 class ControlStg;
+class TimerManager;
+class ThreadPool;
 static std::size_t timer_id = 0;
 
 using size_t = std::size_t;

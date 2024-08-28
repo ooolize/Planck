@@ -6,6 +6,8 @@
  */
 #include "strategy/high_speed_strategy.h"
 
+#include "locator/locator.h"
+
 namespace planck {
 HighSpeedControlStg::HighSpeedControlStg(std::size_t before_wake_us)
   : _before_wake(before_wake_us) {
@@ -14,7 +16,6 @@ void HighSpeedControlStg::strategy(Timer& current_timer) {
   // std::size_t to_target_time = 0;
   // NanoTime unit_sleep_time = 0;
   std::size_t to_target_time = current_timer.DurationCurrToWakeup();
-  NanoTime unit_sleep_time = 0;
   NanoTime step_sleep_time = 0;
   NanoTime start = 0;
   NanoTime end = 0;
@@ -43,8 +44,6 @@ void HighSpeedControlStg::strategy(Timer& current_timer) {
     }
 
     // std::cout << "to_target_time: " << to_target_time << std::endl;
-    // std::cout << " unit_sleep_time: " << unit_sleep_time << " end: " << end
-    //           << std::endl;
   }
   // end = lz::rdtscp();
   // std::cout << " end: " << end << std::endl;
@@ -55,7 +54,8 @@ void HighSpeedControlStg::strategy(Timer& current_timer) {
   };
   // end = lz::rdtscp();
   // std::cout << " end2: " << end << std::endl;
-  current_timer.OnTimer();
+  // auto p = current_timer;
+  Locator::getThreadPool().dispatch(std::move(current_timer._callback));
 
   return;
 }

@@ -8,6 +8,8 @@
 
 #include <cmath>
 #include <iomanip>
+
+#include "strategy/high_speed_strategy.h"
 namespace planck {
 
 double Timer::_frequence = lz::getFrequencyGHz();

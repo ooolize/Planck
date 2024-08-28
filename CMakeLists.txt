@@ -4,8 +4,8 @@
 # clang-tidy .\src\command\command.cpp -p build -- -I F:\project\pattern\include
 # rm -rf build/*; cmake -S . -B build; cmake --build  build -j4
 
-# rm -rf build/*;conan install . ;cmake --preset conan-release ;cmake --build --preset conan-release
-# rm -rf build/*;conan install . --settings=build_type=Debug;cmake --preset conan-debug -DCMAKE_BUILD_TYPE=Debug;cmake --build --preset conan-debug
+# rm -rf build/*;conan install .  --build=missing ;cmake --preset conan-release ;cmake --build --preset conan-release
+# rm -rf build/*; conan install . --build=missing --settings=build_type=Debug  ;cmake  --preset conan-debug -DCMAKE_BUILD_TYPE=Debug ;cmake --build --preset  conan-debug
 # /usr/lib/linux-tools/6.8.0-40-generic/perf
 cmake_minimum_required(VERSION 3.5)
 
@@ -32,7 +32,7 @@ endif()
 message("-- Conan libs: ${CONAN_LIBS}")
 # message(STATUS  "=============CONAN_HOME : ${CONAN_PATH}" )
 # 添加全局包含路径
-include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR} ${CONAN_PATH})
+include_directories(${PROJECT_SOURCE_DIR}/include  ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR} ${CONAN_PATH})
 # include_directories(${PROJECT_SOURCE_DIR}/3rdparty/benchmark/include)
 # 添加全局共享库路径
 link_directories(${PROJECT_SOURCE_DIR}/lib)

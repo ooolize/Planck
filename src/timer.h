@@ -9,7 +9,6 @@
 #include <memory>
 
 #include "interface/define.h"
-#include "strategy/high_speed_strategy.h"
 #include "utils/time.h"
 namespace planck {
 
