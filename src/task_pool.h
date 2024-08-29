@@ -16,14 +16,16 @@
 
 namespace planck {
 
-class ThreadPool {
+class TaskPool {
  public:
-  explicit ThreadPool(int thread_num = 5);
-  ThreadPool(ThreadPool&&) = delete;
-  ThreadPool(const ThreadPool&) = delete;
-  ThreadPool& operator=(ThreadPool&&) = delete;
-  ThreadPool& operator=(const ThreadPool&) = delete;
-  ~ThreadPool() = default;
+  explicit TaskPool(int thread_num = 5);
+  TaskPool(TaskPool&&) = delete;
+  TaskPool(const TaskPool&) = delete;
+  TaskPool& operator=(TaskPool&&) = delete;
+  TaskPool& operator=(const TaskPool&) = delete;
+  ~TaskPool() {
+    exit();
+  };
 
   void dispatch(CallBack&& task);
   void exit() {
@@ -34,9 +36,8 @@ class ThreadPool {
  private:
   bool _exit = false;
   std::mutex _mutex{};
-  std::unique_lock<std::mutex> _lock{_mutex};
   std::condition_variable _cv{};
-
+  std::vector<std::size_t> _record{};
   std::vector<std::jthread> _threads{};
   moodycamel::ConcurrentQueue<CallBack> _tasks{};
 };

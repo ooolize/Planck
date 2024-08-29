@@ -8,11 +8,15 @@
 #pragma once
 #include <sched.h>
 
+#include <atomic>
 #include <cassert>
+#include <condition_variable>
 #include <memory>
+#include <mutex>
 #include <queue>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include "interface/control_stg.h"
 #include "timer.h"
@@ -41,21 +45,33 @@ class TimerManager {
               CallBack callback,
               ControlStgSPtr control_stg = nullptr);
 
+  std::optional<Timer> findTimer(ID id);
   void removeTimer(const planck::Timer& timer);
   void start();
   void stop();
   void exit();
 
   Timer& getCurrentTimer();
+  auto& getCut() {
+    return _is_cut;
+  }
+  auto& getcv() {
+    return _cv;
+  }
+  auto& getMutex() {
+    return _mutex;
+  }
 
  private:
   void run();
 
  private:
   std::vector<int> v;
-  bool _start = false;
-  bool _is_exit = false;
-
+  std::atomic<bool> _start = false;
+  std::atomic<bool> _is_exit = false;
+  std::atomic<bool> _is_cut = false;
+  std::condition_variable _cv{};
+  std::mutex _mutex{};
   Timer _current_timer{};
   lz::rbtree::RBTree<Timer> _timer_container{};
   std::jthread _thread{};

@@ -6,12 +6,12 @@
  */
 
 #pragma once
-#include "thread_pool.h"
+#include "task_pool.h"
 #include "timer_manager.h"
 namespace planck {
 class Locator {
  public:
-  static ThreadPool& getThreadPool() {
+  static TaskPool& getTaskPool() {
     return _thread_pool;
   }
   static TimerManager& getTimerManager() {
@@ -19,10 +19,8 @@ class Locator {
   }
 
  private:
-  static ThreadPool _thread_pool;
+  static TaskPool _thread_pool;
   static TimerManager _timer_manager;
 };
-
-
 
 }  // namespace planck

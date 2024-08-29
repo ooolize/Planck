@@ -13,9 +13,9 @@
 namespace planck {
 
 double Timer::_frequence = lz::getFrequencyGHz();
-Timer::Timer(ID id) : _id(id) {
-}
 
+Timer::Timer(ID id) : _rdtsc_timestamp_plan_wake(id) {
+}
 Timer::Timer(TimeStampNs offset,
              int time_interval,
              int repeat,

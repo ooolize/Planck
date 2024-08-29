@@ -5,11 +5,13 @@
  * @LastEditors: lize
  */
 #pragma once
+#include <atomic>
 #include <iostream>
 #include <thread>
 
 #include "interface/control_stg.h"
 #include "interface/define.h"
+#include "locator/locator.h"
 #include "timer.h"
 namespace planck {
 

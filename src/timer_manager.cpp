@@ -13,7 +13,7 @@ namespace planck {
 TimerManager::~TimerManager() {
   if (_start) {
     exit();
-    Locator::getThreadPool().exit();
+    Locator::getTaskPool().exit();
   }
 }
 
@@ -30,7 +30,6 @@ ID TimerManager::addTimer(const std::string& time_point,
   auto curr_time = lz::getTimeStampNs();
   Timer timer(
     target_time - curr_time, time_interval, repeat, callback, control_stg);
-  timer._id = ++timer_id;
   return addTimer(std::move(timer));
 }
 
@@ -40,26 +39,38 @@ ID TimerManager::addTimer(TimeStampNs offset,
                           CallBack callback,
                           ControlStgSPtr control_stg) {
   Timer timer(offset, time_interval, repeat, callback, control_stg);
-  timer._id = ++timer_id;
   return addTimer(std::move(timer));
 }
 
 ID TimerManager::addTimer(planck::Timer&& timer) {  // NOLINT
   std::size_t count = 0;
-
+  auto plan_wake = timer._rdtsc_timestamp_plan_wake;
   while (++count < timer._repeat) {
     auto new_timer = timer;
     auto interval_offset =
       lz::nanoTime2rdtsc(timer._time_interval, Timer::_frequence);
-    new_timer._id = ++timer_id;
     new_timer._repeat = 0;
-    new_timer._rdtsc_timestamp_plan_wake =
-      timer._rdtsc_timestamp_plan_wake + interval_offset * count;
+    new_timer._rdtsc_timestamp_plan_wake = plan_wake + interval_offset * count;
     _timer_container.insert(std::move(new_timer));
   }
   _timer_container.insert(std::move(timer));
-  _current_timer = timer;
-  return timer_id;
+  {
+    std::lock_guard<std::mutex> lock(_mutex);
+    if (plan_wake < _current_timer._rdtsc_timestamp_plan_wake) {
+      _is_cut.store(true);
+      _cv.notify_one();
+    }
+  }
+
+  return plan_wake;
+}
+
+std::optional<Timer> TimerManager::findTimer(ID id) {
+  auto result = _timer_container.find(Timer(id));
+  if (!result) [[unlikely]] {
+    return std::nullopt;
+  }
+  return result->_value;
 }
 
 void TimerManager::removeTimer(const planck::Timer& timer) {
@@ -84,6 +95,7 @@ void TimerManager::exit() {
 }
 
 void TimerManager::run() {
+  lz::rbtree::RBTree<planck::Timer>::NodeSPtr min_node = {};
   // int cpu = sched_getcpu();  // 获取当前线程所在的 CPU 核心编号
   // std::cout << "Thread running on CPU: " << cpu << std::endl;
   std::cout << "run thread id = " << lz::system::gettid() << std::endl;
@@ -96,14 +108,22 @@ void TimerManager::run() {
         // std::cout << " empty " << std::endl;
         continue;
       }
-      _current_timer._control_stg->strategy(_current_timer);
-      removeTimer(_current_timer);
 
-      auto min_node = _timer_container.findMin();
+      min_node = _timer_container.findMin();
+
       if (!min_node) {
         continue;
       }
-      _current_timer = min_node->_value;
+      {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _current_timer = min_node->_value;
+      }
+      _current_timer._control_stg->strategy(_current_timer);
+      if (_is_cut.load()) {
+        _is_cut.store(false);
+        continue;
+      }
+      removeTimer(_current_timer);
     }
   }
 }

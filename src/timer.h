@@ -12,8 +12,7 @@
 #include "utils/time.h"
 namespace planck {
 
-class Timer {
- public:
+struct Timer {
   // friend bool operator<(const Timer& lhs, const Timer& rhs);
   // friend bool operator>(const Timer& lhs, const Timer& rhs);
 
@@ -21,8 +20,8 @@ class Timer {
   // if not default, <=> operator only generate < > <= >=. need to define ==
   friend bool operator==(const Timer& lhs, const Timer& rhs);
 
-  explicit Timer(ID id);
   Timer() = default;
+  Timer(ID id);
   Timer(TimeStampNs offset,
         int time_interval,
         int repeat,
@@ -32,8 +31,6 @@ class Timer {
   NanoTime DurationCurrToWakeup() const;
   void OnTimer();
 
- public:
-  ID _id{};
   int _repeat{};
   int _time_interval{};
   CallBack _callback{};

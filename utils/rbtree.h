@@ -7,12 +7,14 @@
 
 #pragma once
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cmath>
 #include <functional>
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <vector>
 namespace lz {
 namespace rbtree {
@@ -80,6 +82,7 @@ class RBTree {
   template <typename T>
     requires std::is_convertible_v<T, Value>
   void insert(T&& value) {
+    std::lock_guard<std::mutex> lock(_mutex);
     // first insert as nomal BST
     auto node = insertValue(_root, std::forward<T>(value));
     // then rotate or change color to keep balance
@@ -87,6 +90,7 @@ class RBTree {
   };
   void remove(Value value) {
     NodeSPtr node = find(value);
+    std::lock_guard<std::mutex> lock(_mutex);
     if (node == nullptr) {
       return;
     }
@@ -157,6 +161,7 @@ class RBTree {
   }
 
   NodeSPtr find(Value value) {
+    std::lock_guard<std::mutex> lock(_mutex);
     NodeSPtr node = _root;
     while (node) {
       if (value < node->_value) {
@@ -170,6 +175,7 @@ class RBTree {
     return nullptr;
   };
   NodeSPtr findMin() {
+    std::lock_guard<std::mutex> lock(_mutex);
     return findLeftestNode(_root);
   };
   std::size_t size() const {
@@ -573,7 +579,8 @@ class RBTree {
 
  private:
   NodeSPtr _root{};
-  size_t _count = 0;
+  std::atomic<size_t> _count = 0;
+  std::mutex _mutex{};
 };
 }  // namespace rbtree
 }  // namespace lz

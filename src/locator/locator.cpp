@@ -7,6 +7,6 @@
 #include "locator/locator.h"
 namespace planck {
 
-ThreadPool Locator::_thread_pool;
+TaskPool Locator::_thread_pool;
 TimerManager Locator::_timer_manager;
 }  // namespace planck

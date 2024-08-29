@@ -6,8 +6,12 @@
  */
 #include "strategy/high_speed_strategy.h"
 
-#include "locator/locator.h"
+#include <boost/asio.hpp>
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/use_awaitable.hpp>
 
+#include "locator/locator.h"
 namespace planck {
 HighSpeedControlStg::HighSpeedControlStg(std::size_t before_wake_us)
   : _before_wake(before_wake_us) {
@@ -15,6 +19,15 @@ HighSpeedControlStg::HighSpeedControlStg(std::size_t before_wake_us)
 void HighSpeedControlStg::strategy(Timer& current_timer) {
   // std::size_t to_target_time = 0;
   // NanoTime unit_sleep_time = 0;
+  boost::asio::io_context io_context;
+
+  auto async_call = [&current_timer]() -> boost::asio::awaitable<void> {
+    current_timer._callback();  // 异步调用 _callback()
+    co_return;                  // 使用 co_return 结束协程
+  };
+  auto& is_cut = Locator::getTimerManager().getCut();
+  auto& mutex = Locator::getTimerManager().getMutex();
+  auto& cv = Locator::getTimerManager().getcv();
   std::size_t to_target_time = current_timer.DurationCurrToWakeup();
   NanoTime step_sleep_time = 0;
   NanoTime start = 0;
@@ -30,7 +43,18 @@ void HighSpeedControlStg::strategy(Timer& current_timer) {
       step_sleep_time -= _sleep_compensation;
     }
     start = lz::rdtscp();
-    std::this_thread::sleep_for(std::chrono::nanoseconds(step_sleep_time));
+    // std::this_thread::sleep_for(std::chrono::nanoseconds(step_sleep_time));
+    std::unique_lock<std::mutex> lock(mutex);
+    cv.wait_for(lock, std::chrono::nanoseconds(step_sleep_time), [&is_cut]() {
+      return is_cut.load();
+    });
+    mutex.unlock();
+
+    // if cut in line , break
+    if (is_cut.load()) {
+      std::cout << "cut" << std::endl;
+      break;
+    }
     end = lz::rdtscp();
     real_sleep_time = lz::spendTimeNs(start, end, current_timer._frequence);
     // std::cout << " real sleep time:" << real_sleep_time
@@ -47,6 +71,8 @@ void HighSpeedControlStg::strategy(Timer& current_timer) {
   }
   // end = lz::rdtscp();
   // std::cout << " end: " << end << std::endl;
+  // Locator::getTaskPool().dispatch([]() {});
+  // Locator::getTaskPool().dispatch([]() {});
   // busy wait rdstc
   std::size_t current_rdtsc = 0;
   while (current_rdtsc < current_timer._rdtsc_timestamp_plan_wake) {
@@ -55,8 +81,17 @@ void HighSpeedControlStg::strategy(Timer& current_timer) {
   // end = lz::rdtscp();
   // std::cout << " end2: " << end << std::endl;
   // auto p = current_timer;
-  Locator::getThreadPool().dispatch(std::move(current_timer._callback));
 
+  // 同步调用
+  // current_timer._callback();
+
+  // 使用线程池的异步方案 从派发到执行的时间正常是5us左右
+  // 但可能由于长时间不调用 环境变量的唤醒时间会变长为20us
+  Locator::getTaskPool().dispatch(std::move(current_timer._callback));
+
+  // 使用协程
+  // boost::asio::co_spawn(io_context, async_call, boost::asio::detached);
+  // io_context.run();
   return;
 }
 }  // namespace planck
