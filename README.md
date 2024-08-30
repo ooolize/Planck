@@ -1,10 +1,28 @@
-a us level timer
 
-## TDOO
+# Planck
 
-+ stl style rbtree
+<div style="display: flex; justify-content: center;">
+    <img src="asset//ruler.svg" alt="Planck" width="100" height="100">
+</div>
 
-+ 修改时钟会影响定时器吗？ 待测试 感觉不会 
-+ 唤醒精度是1us, 间隔精度10us 
-+ 之后考虑增加逻辑 如果间隔太远 先不放rbtree里
-+ ./build/Debug/bin/planck ; python3 analysis.py 
+## Introduce
+
+一个高性能定时器
+
+## Feature
+
++ 10us级别精度
++ 自定义每个timer唤醒策略
+
+
+## Use
+
+```c++
+auto &manager = planck::Locator::getTimerManager();
+manager.setCPU(5);
+manager.start();
+
+auto func = [](){ std::cout << "Planck " << std::endl; };
+auto id1 = manager.addTimer(offset, interval, count, func);
+
+```
