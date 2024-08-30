@@ -6,13 +6,13 @@
 -->
 
 # Planck
+
 <p align="center">
-
-<div style="text-align: center;">
-    <img src="asset//ruler.svg" alt="Planck" width="100" height="100">
-</div>
-
+  <a>
+  <img src="asset//ruler.svg" alt="Planck" width="100" height="100">
+  </a>
 </p>
+
 
 
 
