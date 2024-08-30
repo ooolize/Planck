@@ -17,10 +17,14 @@ class Locator {
   static TimerManager& getTimerManager() {
     return _timer_manager;
   }
+  static double getFrequenceGHz() {
+    return _frequence;
+  }
 
  private:
   static TaskPool _thread_pool;
   static TimerManager _timer_manager;
+  static double _frequence;
 };
 
 }  // namespace planck

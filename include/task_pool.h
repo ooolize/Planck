@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -23,18 +24,17 @@ class TaskPool {
   TaskPool(const TaskPool&) = delete;
   TaskPool& operator=(TaskPool&&) = delete;
   TaskPool& operator=(const TaskPool&) = delete;
-  ~TaskPool() {
-    exit();
-  };
+  ~TaskPool();
 
   void dispatch(CallBack&& task);
-  void exit() {
-    _exit = true;
-    // _cv.notify_all();
-  }
+  void exit();
+  void start();
+  void setCPU(std::size_t cpu);
 
  private:
-  bool _exit = false;
+  std::size_t _thread_num = 5;
+  std::size_t _cpu = 5;
+  std::atomic_bool _exit = false;
   std::mutex _mutex{};
   std::condition_variable _cv{};
   std::vector<std::size_t> _record{};

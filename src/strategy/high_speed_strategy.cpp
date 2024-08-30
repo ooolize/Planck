@@ -11,7 +11,7 @@
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/use_awaitable.hpp>
 
-#include "locator/locator.h"
+#include "locator.h"
 namespace planck {
 HighSpeedControlStg::HighSpeedControlStg(std::size_t before_wake_us)
   : _before_wake(before_wake_us) {
@@ -53,7 +53,7 @@ void HighSpeedControlStg::strategy(Timer& current_timer) {
     // if cut in line , break
     if (is_cut.load()) {
       std::cout << "cut" << std::endl;
-      break;
+      return;
     }
     end = lz::rdtscp();
     real_sleep_time = lz::spendTimeNs(start, end, current_timer._frequence);

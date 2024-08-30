@@ -11,7 +11,7 @@
 
 #include "interface/control_stg.h"
 #include "interface/define.h"
-#include "locator/locator.h"
+#include "locator.h"
 #include "timer.h"
 namespace planck {
 

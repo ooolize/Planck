@@ -11,10 +11,27 @@
 #include "utils/system.h"
 namespace planck {
 
+TaskPool::~TaskPool() {
+  exit();
+}
+
+void TaskPool::exit() {
+  _exit = true;
+  _cv.notify_all();
+}
+
+void TaskPool::setCPU(std::size_t cpu) {
+  _cpu = cpu;
+}
+
 TaskPool::TaskPool(int thread_num) {
-  for (int i = 0; i < thread_num; ++i) {
+  _thread_num = thread_num;
+};
+
+void TaskPool::start() {
+  for (int i = 0; i < _thread_num; ++i) {
     auto task = [this] {
-      lz::system::setCPUAffinity(5);
+      lz::system::setCPUAffinity(_cpu);
       CallBack task;
       while (!_exit) {
         std::unique_lock<std::mutex> _lock{_mutex};
@@ -29,7 +46,7 @@ TaskPool::TaskPool(int thread_num) {
     };
     _threads.emplace_back(std::move(task));
   }
-};
+}
 
 void TaskPool::dispatch(CallBack&& task) {
   _tasks.enqueue(std::move(task));

@@ -2,9 +2,7 @@ a us level timer
 
 ## TDOO
 
-+ coroutine
 + stl style rbtree
-+ 目前仅支持按序插入->使用cv 如果比当前的早就退出
 
 + 修改时钟会影响定时器吗？ 待测试 感觉不会 
 + 唤醒精度是1us, 间隔精度10us 

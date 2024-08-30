@@ -7,7 +7,7 @@
 
 #include "timer_manager.h"
 
-#include "locator/locator.h"
+#include "locator.h"
 namespace planck {
 
 TimerManager::~TimerManager() {
@@ -92,6 +92,13 @@ void TimerManager::stop() {
 void TimerManager::exit() {
   stop();
   _is_exit = true;
+}
+
+void TimerManager::setCPU(std::size_t cpu) {
+  _cpu = cpu;
+  lz::system::setCPUAffinity(_cpu);
+  Locator::getTaskPool().setCPU(_cpu);
+  Locator::getTaskPool().start();
 }
 
 void TimerManager::run() {

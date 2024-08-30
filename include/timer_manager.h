@@ -62,6 +62,8 @@ class TimerManager {
     return _mutex;
   }
 
+  void setCPU(std::size_t cpu);
+
  private:
   void run();
 
@@ -72,6 +74,7 @@ class TimerManager {
   std::atomic<bool> _is_cut = false;
   std::condition_variable _cv{};
   std::mutex _mutex{};
+  std::size_t _cpu = 5;
   Timer _current_timer{};
   lz::rbtree::RBTree<Timer> _timer_container{};
   std::jthread _thread{};
