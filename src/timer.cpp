@@ -37,6 +37,15 @@ Timer::Timer(TimeStampNs offset,
   }
 }
 
+Timer::Timer(Timer&& other) noexcept {
+  swap(*this, other);
+}
+
+Timer& Timer::operator=(Timer&& other) noexcept {
+  swap(*this, other);
+  return *this;
+}
+
 NanoTime Timer::DurationCurrToWakeup() const {
   auto curr = lz::rdtscp();
   // TODO(): narrow_cast.
@@ -72,6 +81,17 @@ std::strong_ordering operator<=>(const Timer& lhs, const Timer& rhs) {
 bool operator==(const Timer& lhs, const Timer& rhs) {
   return lhs._rdtsc_timestamp_plan_wake == rhs._rdtsc_timestamp_plan_wake;
 }
+
+void swap(Timer& lhs, Timer& rhs) noexcept {
+  std::swap(lhs._repeat, rhs._repeat);
+  std::swap(lhs._time_interval, rhs._time_interval);
+  std::swap(lhs._callback, rhs._callback);
+  std::swap(lhs._control_stg, rhs._control_stg);
+  std::swap(lhs._rdtsc_timestamp_real_start, rhs._rdtsc_timestamp_real_start);
+  std::swap(lhs._rdtsc_timestamp_plan_wake, rhs._rdtsc_timestamp_plan_wake);
+  std::swap(lhs._rdtsc_timestamp_real_wake, rhs._rdtsc_timestamp_real_wake);
+}
+
 // inline bool operator<(const Timer& lhs, const Timer& rhs) {
 //   return lhs._id < rhs._id;
 // }

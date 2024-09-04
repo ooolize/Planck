@@ -9,7 +9,7 @@ find_package(Boost  REQUIRED)
 # add_executable(planck ${SOURCE})
 add_library(planck SHARED ${SOURCE})
 
-target_include_directories(planck ${PROJECT_SOURCE_DIR}/include)
+# target_include_directories(planck ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(planck pthread boost::boost concurrentqueue::concurrentqueue)
 
 # set_target_properties(planck PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)

@@ -20,6 +20,7 @@ struct Timer {
   // if not default, <=> operator only generate < > <= >=. need to define ==
   friend bool operator==(const Timer& lhs, const Timer& rhs);
 
+  friend void swap(Timer& lhs, Timer& rhs) noexcept;
   Timer() = default;
   Timer(ID id);
   Timer(TimeStampNs offset,
@@ -27,6 +28,11 @@ struct Timer {
         int repeat,
         CallBack callback,
         ControlStgSPtr control_stg = nullptr);
+
+  Timer(const Timer& other) = default;
+  Timer(Timer&& other) noexcept;
+  Timer& operator=(const Timer& other) = default;
+  Timer& operator=(Timer&& other) noexcept;
 
   NanoTime DurationCurrToWakeup() const;
   void OnTimer();
