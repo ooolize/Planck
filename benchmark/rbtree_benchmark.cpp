@@ -35,7 +35,7 @@ static void remove(benchmark::State& state) {
   lz::rbtree::RBTree<int> _tree{};
   std::vector<int> v(state.range(0));
   std::transform(v.begin(), v.end(), v.begin(), [&state](int) {
-    return distribution(engine) % state.range(0);
+    return distribution(engine);
   });
   // build tree
   std::for_each(v.begin(), v.end(), [&_tree](int i) { _tree.insert(i); });

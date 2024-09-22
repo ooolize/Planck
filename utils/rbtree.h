@@ -81,12 +81,16 @@ class RBTree {
   // TODO() not Value&& or const Value&. Value deal all condition.
   template <typename T>
     requires std::is_convertible_v<T, Value>
-  void insert(T&& value) {
+  bool insert(T&& value) {
     std::lock_guard<std::mutex> lock(_mutex);
     // first insert as nomal BST
     auto node = insertValue(_root, std::forward<T>(value));
+    if (node == nullptr) {
+      return false;
+    }
     // then rotate or change color to keep balance
     fixupAfterInsert(node);
+    return true;
   };
   void remove(Value value) {
     NodeSPtr node = find(value);
@@ -312,7 +316,7 @@ class RBTree {
         }
         node = node->_right;
       } else {
-        return node;
+        return nullptr;
       }
     }
     // should not reach here
